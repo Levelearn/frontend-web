@@ -163,7 +163,7 @@ function App() {
           path="/course/:id"
           element={
             <>
-              <PageTitle title="Edit Course" />
+              <PageTitle title="Edit Course (testing)" />
               <CourseDetail />
             </>
           }
