@@ -214,7 +214,7 @@ function App() {
           }
         />
         <Route
-          path="/user-course/:id"
+          path="/usercourse/:id"
           element={
             <>
               <PageTitle title="User Course" />
@@ -223,20 +223,6 @@ function App() {
           }
         />
       </Routes>
-
-      {/* Course Detail */}
-      <Route
-        path="/course/:id/detail"
-        element={
-          <>
-            <PageTitle title="Course Detail" />
-            
-          </>
-        }
-        >
-          
-      </Route>
-
     </DefaultLayout>
   );
 }

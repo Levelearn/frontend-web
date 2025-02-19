@@ -1,120 +1,483 @@
-import React, { useState } from 'react';
-import DataTable, { TableColumn } from 'react-data-table-component';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+//@ts-ignore
+import { AddUserDto, EditUserDto, UserDto } from '../dto/UserDto';
+import api from '../api/api';
+import DataTable from 'datatables.net-react';
 
-interface UserData {
-  username: string;
-  name: string;
-  user_role: string;
-  student_id: string;
-  instructor_id: string;
-  action: string;
-}
+export default function User() {
+  const [data, setData] = useState<UserDto[]>([]);
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
+  const [name, setName] = useState<string>('');
+  const [role, setRole] = useState<'STUDENT' | 'INSTRUCTOR' | 'ADMIN'>(
+    'STUDENT',
+  );
+  const [username, setUsername] = useState<string>('');
+  const [student_id, setStudent_id] = useState<string>('');
+  const [instructor_id, setInstructor_id] = useState<string>('');
+  const [userId, setUserId] = useState<number>();
 
-const User: React.FC = () => {
-  const columns: TableColumn<UserData>[] = [
-    {
-      name: 'Name',
-      selector: (row: UserData) => row.name,
-    },
-    {
-      name: 'Username',
-      selector: (row: UserData) => row.username,
-    },
-    {
-      name: 'Role',
-      selector: (row: UserData) => row.user_role,
-    },
-    {
-      name: 'Student ID',
-      selector: (row: UserData) => row.student_id,
-    },
-    {
-      name: 'Instructor ID',
-      selector: (row: UserData) => row.instructor_id,
-    },
-    {
-      name: 'Action',
-      selector: (row: UserData) => row.action,
-      cell: (row: UserData) => (
-        <button className="bg-blue-500 text-white px-4 py-2 rounded">
-          Edit
-        </button>
-      ),
-    },
-  ];
+  const fetchData = async () => {
+    try {
+      const response = await api.get<UserDto[]>('/user');
+      setData(response.data);
+    } catch (error) {
+      console.error('Error fetching data: ', error);
+    }
+  };
 
-  const data: UserData[] = [
-    {
-      username: 'ifs21028',
-      name: 'Rafael Manurung',
-      user_role: 'Student',
-      student_id: '11S21028',
-      instructor_id: '-',
-      action: 'Edit'
-    },
-    {
-      username: 'ifs21003',
-      name: 'Benhard Yudha',
-      user_role: 'Student',
-      student_id: '11S21003',
-      instructor_id: '-',
-      action: 'Edit'
-    },
-    {
-      username: 'archico.semb',
-      name: 'Archico Sembiring',
-      user_role: 'Instructor',
-      student_id: '-',
-      instructor_id: '11S21011',
-      action: 'Edit'
-    },
-    // Add more courses as needed
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const [records, setRecords] = useState<UserData[]>(data);
+  const handleAddUser = async () => {
+    const uploadData: AddUserDto = {
+      name: name,
+      username: username,
+      password: username,
+      role: role,
+      instructor_id: instructor_id,
+      student_id: student_id,
+    };
 
-  function handleFilter(event: React.ChangeEvent<HTMLInputElement>) {
-    const newData = data.filter((row) => {
-      return (
-        row.student_id.toLowerCase().includes(event.target.value.toLowerCase()) || 
-        row.instructor_id.toLowerCase().includes(event.target.value.toLowerCase()) || 
-        row.name.toLowerCase().includes(event.target.value.toLowerCase()) 
+    try {
+      const response = await api.post<AddUserDto>('/user', uploadData);
+      console.log(response.data);
+
+      handleClearForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error while adding user: ', error);
+      setIsAddModalOpen(false);
+    }
+  };
+
+  const handleEditModal = (user: UserDto) => {
+    setName(user.name);
+    setUsername(user.username);
+    setRole(user.role);
+    setInstructor_id(user.instructorId || '');
+    setStudent_id(user.studentId || '');
+    setUserId(user.id);
+
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditUser = async () => {
+    const instructorId = role === 'INSTRUCTOR' ? instructor_id : '';
+    const studentId = role === 'STUDENT' ? student_id : '';
+
+    const uploadData: EditUserDto = {
+      name: name,
+      username: username,
+      role: role,
+      instructorId: instructorId,
+      studentId: studentId,
+    };
+
+    try {
+      const response = await api.put<EditUserDto>(
+        `/user/${userId}`,
+        uploadData,
       );
-    });
-    setRecords(newData);
-  }
+      console.log(response.data);
+
+      handleClearForm();
+      fetchData();
+    } catch (error) {
+      console.error('Error while updating user: ', error);
+    }
+  };
+
+  const handleDeleteUser = async (id: number) => {
+    try {
+      const response = await api.delete(`/user/${id}`);
+      console.log(response.data);
+
+      fetchData();
+    } catch (error) {
+      console.error('Error while deleting user: ', error);
+    }
+  };
+
+  const handleClearForm = () => {
+    setName('');
+    setRole('STUDENT');
+    setUsername('');
+    setInstructor_id('');
+    setStudent_id('');
+
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+  };
+
+  const columns = [
+    { data: 'name', title: 'Name' },
+    { data: 'username', title: 'Username' },
+    { data: 'role', title: 'Role' },
+    {
+      data: 'studentId',
+      title: 'Students ID',
+      render: function (data: string | null) {
+        return data ? data : '-';
+      },
+    },
+    {
+      data: 'instructorId',
+      title: 'Instructor ID',
+      render: function (data: string | null) {
+        return data ? data : '-';
+      },
+    },
+    {
+      data: 'createdAt',
+      title: 'Created At',
+      visible: false,
+    },
+    {
+      data: null,
+      title: 'Actions',
+      orderable: false,
+      searchable: false,
+      createdCell: (cell: HTMLTableCellElement, _: any, rowData: UserDto) => {
+        cell.innerHTML = '';
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex space-x-2';
+
+        const createButton = (
+          buttonColor: string,
+          svgPath: string,
+          title: string,
+          onClick: () => void,
+        ) => {
+          const button = document.createElement('button');
+          button.className = `px-4.5 py-2.5 ${buttonColor} text-white rounded-md`;
+          button.title = title;
+
+          const svg = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'svg',
+          );
+          svg.setAttribute('viewBox', '0 0 512 512');
+          svg.setAttribute('width', '20');
+          svg.setAttribute('height', '20');
+          svg.setAttribute('fill', 'white');
+          svg.innerHTML = svgPath;
+
+          button.appendChild(svg);
+          button.onclick = onClick;
+          return button;
+        };
+
+        const editButton = createButton(
+          'bg-warning',
+          `<path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/>`,
+          'Edit',
+          () => handleEditModal(rowData),
+        );
+
+        const deleteButton = createButton(
+          'bg-danger',
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z"/></svg>`, // Example SVG for view
+          'Delete',
+          () => handleDeleteUser(rowData.id),
+        );
+
+        buttonContainer.appendChild(editButton);
+        buttonContainer.appendChild(deleteButton);
+
+        cell.appendChild(buttonContainer);
+      },
+    },
+  ];
 
   return (
     <div>
-      <div className="flex justify-between mb-2">
-        <h1 className="text-2xl text-primary font-bold">
-          User Management
-        </h1>
-        <Link
-          to="#"
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-        >
-          Add User
-        </Link>
+      <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+        <h1 className="text-2xl font-bold pb-5">User Management</h1>
+        <hr />
+        <div className="text-end mt-6">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
+          >
+            Add User
+          </button>
+        </div>
+        <div className="max-w-full overflow-x-auto ">
+          <DataTable
+            data={data}
+            columns={columns}
+            className="display nowrap w-full"
+            options={{
+              order: [[5, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
+            }}
+          />
+        </div>
       </div>
-      <div className="text-end mb-4">
-        <input
-          type="text"
-          placeholder="Search..."
-          onChange={handleFilter}
-          className="border p-2 rounded"
-        />
-      </div>
-      <DataTable
-        columns={columns}
-        data={records}
-        pagination
-        highlightOnHover
-        responsive
-      />
+
+      {isAddModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+          <div
+            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+            style={{ width: '800px', maxWidth: '90%' }}
+          >
+            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Add User
+              </h3>
+            </div>
+            <div className="flex flex-col gap-5.5 p-6.5">
+              <div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="name"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="username"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="role"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Role
+                  </label>
+                  <select
+                    name="role"
+                    id="role"
+                    value={role}
+                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input"
+                    onChange={(e) =>
+                      setRole(
+                        e.target.value as 'ADMIN' | 'INSTRUCTOR' | 'STUDENT',
+                      )
+                    }
+                  >
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="STUDENT">STUDENT</option>
+                    <option value="INSTRUCTOR">INSTRUCTOR</option>
+                  </select>
+                </div>
+
+                {role === 'STUDENT' && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="student-id"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Student ID
+                    </label>
+                    <input
+                      type="text"
+                      id="student-id"
+                      name="studentId"
+                      value={student_id}
+                      onChange={(e) => setStudent_id(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    />
+                  </div>
+                )}
+
+                {role === 'INSTRUCTOR' && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="instuctor-id"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Instructor ID
+                    </label>
+                    <input
+                      type="text"
+                      id="instructor-id"
+                      name="instructorId"
+                      value={instructor_id}
+                      onChange={(e) => setInstructor_id(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={() => handleClearForm()}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleAddUser().then();
+                    }}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+          <div
+            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+            style={{ width: '800px', maxWidth: '90%' }}
+          >
+            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Edit User
+              </h3>
+            </div>
+            <div className="flex flex-col gap-5.5 p-6.5">
+              <div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="name"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="username"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label
+                    htmlFor="role"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Role
+                  </label>
+                  <select
+                    name="role"
+                    id="role"
+                    value={role}
+                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input"
+                    onChange={(e) =>
+                      setRole(
+                        e.target.value as 'ADMIN' | 'INSTRUCTOR' | 'STUDENT',
+                      )
+                    }
+                  >
+                    <option value="ADMIN">ADMIN</option>
+                    <option value="STUDENT">STUDENT</option>
+                    <option value="INSTRUCTOR">INSTRUCTOR</option>
+                  </select>
+                </div>
+
+                {role === 'STUDENT' && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="student-id"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Student ID
+                    </label>
+                    <input
+                      type="text"
+                      id="student-id"
+                      name="studentId"
+                      value={student_id}
+                      onChange={(e) => setStudent_id(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    />
+                  </div>
+                )}
+
+                {role === 'INSTRUCTOR' && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="instuctor-id"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Instructor ID
+                    </label>
+                    <input
+                      type="text"
+                      id="instructor-id"
+                      name="instructorId"
+                      value={instructor_id}
+                      onChange={(e) => setInstructor_id(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    />
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={() => handleClearForm()}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleEditUser().then();
+                    }}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default User;
+}

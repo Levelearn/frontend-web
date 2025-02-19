@@ -66,7 +66,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       <div className="flex items-center justify-between gap-2 px-6 py-5.5 lg:py-6.5">
         <NavLink to="/">
           {/* <img src={Logo} alt="Logo" /> */}
-          <div className='px-3 text-3xl text-white font-bold'>ADMIN</div>
+          <div className="px-3 text-3xl text-white font-bold">ADMIN</div>
         </NavLink>
 
         <button
@@ -107,9 +107,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/user"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('user') && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  className={({ isActive }) =>
+                    `group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      isActive ? 'bg-graydark dark:bg-meta-4' : ''
+                    }`
+                  }
                 >
                   <svg
                     className="fill-current"
@@ -137,9 +139,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/course"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('course') && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  className={({ isActive }) =>
+                    `group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      isActive ? 'bg-graydark dark:bg-meta-4' : ''
+                    }`
+                  }
                 >
                   <svg
                     className="fill-current"
@@ -167,9 +171,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               <li>
                 <NavLink
                   to="/chapter"
-                  className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
-                    pathname.includes('chapter') && 'bg-graydark dark:bg-meta-4'
-                  }`}
+                  className={({ isActive }) =>
+                    `group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
+                      isActive ? 'bg-graydark dark:bg-meta-4' : ''
+                    }`
+                  }
                 >
                   <svg
                     className="fill-current"
@@ -194,7 +200,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Menu Item Chapter --> */}
 
               {/* <!-- Menu Item Material --> */}
-              <li>
+              {/* <li>
                 <NavLink
                   to="/material"
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
@@ -220,11 +226,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   Material
                 </NavLink>
-              </li>
+              </li> */}
               {/* <!-- Menu Item Material --> */}
 
               {/* <!-- Menu Item Assessment --> */}
-              <li>
+              {/* <li>
                 <NavLink
                   to="/assessment"
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
@@ -250,11 +256,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   Assessment
                 </NavLink>
-              </li>
+              </li> */}
               {/* <!-- Menu Item Assessment --> */}
 
               {/* <!-- Menu Item Assignment --> */}
-              <li>
+              {/* <li>
                 <NavLink
                   to="/assignment"
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
@@ -280,15 +286,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                   </svg>
                   Assignment
                 </NavLink>
-              </li>
+              </li> */}
               {/* <!-- Menu Item Assignment --> */}
 
-              
               {/* <!-- Menu Item Settings --> */}
             </ul>
           </div>
-
-          
         </nav>
         {/* <!-- Sidebar Menu --> */}
       </div>
