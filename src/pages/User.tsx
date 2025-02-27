@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import { AddUserDto, EditUserDto, UserDto } from '../dto/UserDto';
 import api from '../api/api';
 import DataTable from 'datatables.net-react';
+import DT from 'datatables.net-dt';
+ 
+DataTable.use(DT);
 
 export default function User() {
   const [data, setData] = useState<UserDto[]>([]);

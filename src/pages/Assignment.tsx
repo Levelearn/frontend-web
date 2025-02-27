@@ -1,263 +1,212 @@
-import React, { useState } from 'react';
-import DataTable from 'datatables.net-react';
-import DT from 'datatables.net-dt';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import api from '../api/api';
+import {
+  AssignmentDto,
+  AddAssignmentDto,
+  UpdateAssignmentDto,
+} from '../dto/AssignmentDto';
+import { supabase } from '../api/supabase';
 
-DataTable.use(DT);
+interface AssignmentProps {}
 
-interface AssignmentData {
-  id: number;
-  name: string;
-  level: number;
-  course: string;
-  description: string;
-  deadline: string;
-}
+const Assignment: React.FC<AssignmentProps> = () => {
+  const { id } = useParams<{ id: string }>();
+  const [instruction, setInstruction] = useState<string>('');
+  const [assignId, setAssignId] = useState<number | undefined>();
+  const [fileUrl, setFileUrl] = useState<string>('');
+  const [assignmentExist, setAssignmentExist] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-const data: AssignmentData[] = [
-  {
-    id: 1,
-    name: 'Pengantar IMK',
-    level: 1,
-    course: 'IMK',
-    description: 'Meringkas Bab 1',
-    deadline: '12 February 2024',
-  },
-  {
-    id: 2,
-    name: 'User Center Design',
-    level: 2,
-    course: 'IMK',
-    description: 'Meringkas Bab 2',
-    deadline: '20 February 2024',
-  },
-];
+  const fetchData = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+    try {
+      const response = await api.get<AssignmentDto>(
+        `/chapter/${id}/assignments`,
+      );
+      console.log(response.data);
 
-const Assignment: React.FC = () => {
-  const columns = [
-    { data: 'name', title: 'Name' },
-    { data: 'level', title: 'Level' },
-    { data: 'course', title: 'Course' },
-    { data: 'description', title: 'Description' },
-    { data: 'deadline', title: 'Deadline' },
-    {
-      data: null,
-      title: 'Actions',
-      orderable: false,
-      searchable: false,
-      createdCell: (
-        cell: HTMLTableCellElement,
-        _: any,
-        rowData: AssignmentData,
-      ) => {
-        cell.innerHTML = '';
-
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'flex space-x-2';
-
-        const createButton = (
-          buttonColor: string,
-          svgPath: string,
-          title: string,
-          onClick: () => void,
-        ) => {
-          const button = document.createElement('button');
-          button.className = `px-4.5 py-2.5 ${buttonColor} text-white rounded-md`;
-          button.title = title;
-
-          const svg = document.createElementNS(
-            'http://www.w3.org/2000/svg',
-            'svg',
-          );
-          svg.setAttribute('viewBox', '0 0 512 512');
-          svg.setAttribute('width', '20');
-          svg.setAttribute('height', '20');
-          svg.setAttribute('fill', 'white');
-          svg.innerHTML = svgPath;
-
-          button.appendChild(svg);
-          button.onclick = onClick;
-          return button;
-        };
-
-        const infoButton = createButton(
-          'bg-green-500',
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M48 80a48 48 0 1 1 96 0A48 48 0 1 1 48 80zM0 224c0-17.7 14.3-32 32-32l64 0c17.7 0 32 14.3 32 32l0 224 32 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 512c-17.7 0-32-14.3-32-32s14.3-32 32-32l32 0 0-192-32 0c-17.7 0-32-14.3-32-32z"/></svg>`,
-          'Information',
-          () => {
-            /* Handle view logic */ console.log('View clicked', rowData.id);
-          },
-        );
-
-        const deleteButton = createButton(
-          'bg-danger',
-          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z"/></svg>`, // Example SVG for view
-          'Delete',
-          () => {
-            /* Handle view logic */ console.log('View clicked', rowData.id);
-          },
-        );
-
-        buttonContainer.appendChild(infoButton);
-        buttonContainer.appendChild(deleteButton);
-
-        cell.appendChild(buttonContainer);
-      },
-    },
-  ];
-
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [assignment, setAssignment] = useState<{
-    name: string;
-    level: number;
-    course: string;
-    description: string;
-    deadline: string;
-  }>({
-    name: '',
-    level: 1,
-    course: '',
-    description: '',
-    deadline: '',
-  });
-
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    setAssignment({ ...assignment, [e.target.name]: e.target.value });
+      if (response.data && response.data.id) {
+        setAssignId(response.data.id);
+        setInstruction(response.data.instruction);
+        setFileUrl(response.data.fileUrl);
+        setAssignmentExist(true);
+      } else {
+        setAssignmentExist(false);
+      }
+    } catch (error: any) {
+      console.error('Error while getting data: ', error);
+      setErrorMessage(error.message || 'Failed to fetch assignment data.');
+      setAssignmentExist(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('New Assignment:', assignment);
-    setIsModalOpen(false);
+  useEffect(() => {
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+    }
+  };
+
+  const handleSaveAssignment = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+
+    if (!instruction.trim()) {
+      setErrorMessage('Instruction cannot be empty.');
+      setIsLoading(false);
+      return;
+    }
+
+    let uploadedFileUrl = fileUrl;
+
+    try {
+      if (file) {
+        const filePath = `assignment/${id}/${encodeURIComponent(file.name)}`;
+        console.log('Uploading to:', filePath);
+        console.log('File to upload:', file);
+
+        const { data, error }: { data: any; error: any } =
+          await supabase.storage.from('assignment').upload(filePath, file);
+
+        console.log('Supabase upload response:', { data, error });
+
+        if (error) {
+          console.error('Error uploading file:', error.message);
+          setErrorMessage('Failed to upload file.');
+          setIsLoading(false);
+          return;
+        }
+
+        uploadedFileUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      }
+
+      const chapterId = Number(id);
+
+      if (assignmentExist && assignId) {
+        const payload: UpdateAssignmentDto = {
+          chapterId: chapterId,
+          instruction: instruction,
+          fileUrl: uploadedFileUrl,
+        };
+        await api.put(`/assignment/${assignId}`, payload);
+      } else {
+        const payload: AddAssignmentDto = {
+          chapterId: chapterId,
+          instruction: instruction,
+          fileUrl: uploadedFileUrl,
+        };
+        await api.post(`/assignment`, payload);
+      }
+
+      setIsEditing(false);
+      fetchData();
+    } catch (error: any) {
+      console.error('Error saving assignment:', error);
+      setErrorMessage(error.message || 'Failed to save assignment.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddAssignmentClick = () => {
+    setInstruction('');
+    setFileUrl('');
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setErrorMessage('');
   };
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
-      <h1 className="text-2xl font-bold pb-5">Assignment Management</h1>
+      <h1 className="text-2xl font-bold pb-5">Material Management</h1>
       <hr />
-      <div className="text-end mt-6">
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-        >
-          Add Assignment
-        </button>
-      </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-50">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
+      {isLoading && <p>Loading...</p>}
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
+      <div className="mt-6">
+        {!assignmentExist && !isEditing ? (
+          <button
+            onClick={handleAddAssignmentClick}
+            className="w-full inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
           >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Edit Course
-              </h3>
+            Add Assignment
+          </button>
+        ) : (
+          <div>
+            <div>
+              <label
+                htmlFor="name"
+                className="mb-3 block text-black dark:text-white"
+              >
+                Instruction
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={instruction}
+                onChange={(e) => setInstruction(e.target.value)}
+                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              />
             </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  />
-                </div>
 
-                <div className="mb-4">
-                  <label
-                    htmlFor="level"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Level
-                  </label>
-                  <input
-                    type="number"
-                    id="level"
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  />
-                </div>
+            <div className="mt-4">
+              <label
+                htmlFor="file"
+                className="mb-3 block text-black dark:text-white"
+              >
+                Upload File
+              </label>
+              <input
+                type="file"
+                id="file"
+                onChange={handleFileChange}
+                className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+              />
+            </div>
+            {fileUrl && (
+              <div className="mt-4">
+                <a className='text-boxdark-2 hover:text-primary' href={fileUrl} target="_blank" rel="noopener noreferrer">
+                  View uploaded file
+                </a>
+              </div>
+            )}
 
-                <div className="mb-4">
-                  <label
-                    htmlFor="code"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Code
-                  </label>
-                  <input
-                    type="text"
-                    id="code"
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="desc"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    id="desc"
-                    rows={4}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  ></textarea>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="deadline"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Deadline
-                  </label>
-                  <input
-                    type="date"
-                    id="deadline"
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  />
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
-                </div>
-              </form>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleSaveAssignment}
+                className="rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
+              >
+                Save
+              </button>
+              {isEditing && (
+                <button
+                  onClick={handleCancelClick}
+                  className="rounded-md px-3 py-2 bg-gray-500 text-center font-medium text-white hover:bg-opacity-90"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
-
-      <div>
-        <DataTable
-          data={data}
-          columns={columns}
-          className="display nowrap w-full"
-        />
+        )}
       </div>
     </div>
   );

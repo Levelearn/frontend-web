@@ -24,6 +24,7 @@ import Assignment from './pages/Assignment';
 import User from './pages/User';
 import CourseDetail from './pages/CourseDetail';
 import UserCourse from './pages/UserCourse';
+import Testing from './pages/Testing';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -178,7 +179,7 @@ function App() {
           }
         />
         <Route
-          path="/material"
+          path="/material/:id"
           element={
             <>
               <PageTitle title="Material" />
@@ -187,7 +188,7 @@ function App() {
           }
         />
         <Route
-          path="/assessment"
+          path="/assessment/:id"
           element={
             <>
               <PageTitle title="Assessment" />
@@ -196,7 +197,7 @@ function App() {
           }
         />
         <Route
-          path="/assignment"
+          path="/assignment/:id"
           element={
             <>
               <PageTitle title="Assignment" />
@@ -219,6 +220,16 @@ function App() {
             <>
               <PageTitle title="User Course" />
               <UserCourse />
+            </>
+          }
+        />
+
+        <Route
+          path="/testing"
+          element={
+            <>
+              <PageTitle title="testing" />
+              <Testing />
             </>
           }
         />

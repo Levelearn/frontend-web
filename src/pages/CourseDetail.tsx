@@ -5,6 +5,9 @@ import DataTable from 'datatables.net-react';
 import api from '../api/api';
 import { CourseDto } from '../dto/CourseDto';
 import { AddChapterDto, ChapterDto, UpdateChapterDto } from '../dto/ChapterDto';
+import DT from 'datatables.net-dt';
+
+DataTable.use(DT);
 
 const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
@@ -86,7 +89,10 @@ const CourseDetail: React.FC = () => {
     setEditFormData({} as ChapterDto);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, isEdit: boolean = false) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isEdit: boolean = false,
+  ) => {
     const { name, value } = e.target;
     if (isEdit) {
       setEditFormData({ ...editFormData, [name]: value });
@@ -121,7 +127,10 @@ const CourseDetail: React.FC = () => {
 
     try {
       const updatedData = { ...editFormData };
-      const response = await api.put<UpdateChapterDto>(`/chapter/${selectedChapter.id}`, updatedData);
+      const response = await api.put<UpdateChapterDto>(
+        `/chapter/${selectedChapter.id}`,
+        updatedData,
+      );
       console.log('Response:', response.data);
 
       setEditFormData({} as UpdateChapterDto);
@@ -144,8 +153,20 @@ const CourseDetail: React.FC = () => {
   };
 
   const columns = [
-    { data: 'name', title: 'Name' },
-    { data: 'description', title: 'Description' },
+    {
+      data: 'name',
+      title: 'Name',
+      createdCell: (cell: HTMLTableCellElement, cellData: string) => {
+        cell.textContent = truncateText(cellData, 5);
+      },
+    },
+    {
+      data: 'description',
+      title: 'Description',
+      createdCell: (cell: HTMLTableCellElement, cellData: string) => {
+        cell.textContent = truncateText(cellData, 5);
+      },
+    },
     { data: 'level', title: 'Chapter' },
     { data: 'course', title: 'Course' },
     {
@@ -192,21 +213,21 @@ const CourseDetail: React.FC = () => {
           'bg-success',
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M96 0C43 0 0 43 0 96L0 416c0 53 43 96 96 96l288 0 32 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l0-64c17.7 0 32-14.3 32-32l0-320c0-17.7-14.3-32-32-32L384 0 96 0zm0 384l256 0 0 64L96 448c-17.7 0-32-14.3-32-32s14.3-32 32-32zm32-240c0-8.8 7.2-16 16-16l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16zm16 48l192 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-192 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>`,
           'Material',
-          () => navigate('/material'),
+          () => navigate(`/material/${rowData.id}`),
         );
 
         const assignmentButton = createButton(
           'bg-success',
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><path d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-288-128 0c-17.7 0-32-14.3-32-32L224 0 64 0zM256 0l0 128 128 0L256 0zM80 64l64 0c8.8 0 16 7.2 16 16s-7.2 16-16 16L80 96c-8.8 0-16-7.2-16-16s7.2-16 16-16zm0 64l64 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-64 0c-8.8 0-16-7.2-16-16s7.2-16 16-16zm16 96l192 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32L96 352c-17.7 0-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32zm0 32l0 64 192 0 0-64L96 256zM240 416l64 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-64 0c-8.8 0-16-7.2-16-16s7.2-16 16-16z"/></svg>`,
           'Assignment',
-          () => navigate('/assignment'),
+          () => navigate(`/assignment/${rowData.id}`),
         );
 
         const assessmentButton = createButton(
           'bg-success',
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M152.1 38.2c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 113C-2.3 103.6-2.3 88.4 7 79s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zm0 160c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zM224 96c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32l288 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-288 0c-17.7 0-32-14.3-32-32zM48 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg>`,
           'Assessment',
-          () => navigate('/assessment'),
+          () => navigate(`/assessment/${rowData.id}`),
         );
 
         const editButton = createButton(
@@ -233,6 +254,16 @@ const CourseDetail: React.FC = () => {
       },
     },
   ];
+
+  // Fungsi untuk memotong teks
+  const truncateText = (text: string, wordLimit: number): string => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length > wordLimit) {
+      return words.slice(0, wordLimit).join(' ') + ' ...';
+    }
+    return text;
+  };
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
@@ -272,18 +303,29 @@ const CourseDetail: React.FC = () => {
 
       <div className="mt-10 flex justify-between">
         <h1 className="text-2xl font-bold">Course Chapters</h1>
-        <button // Tombol "Add Course" yang sudah diperbaiki
+        <button
           onClick={handleOpenAddModal}
           className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
         >
           Add Chapter
         </button>
       </div>
-      <div className="mt-4">
+      <div className="mt-4 max-w-full overflow-x-auto">
         <DataTable
+          key={1}
           data={dataChapter}
           columns={columns}
           className="display nowrap w-full"
+          options={{
+            order: [[2, 'asc']],
+            columnDefs: [
+              { targets: 0, width: '20%' },
+              { targets: 1, width: '40%' },
+              { targets: 2, width: '10%' },
+              { targets: 3, width: '15%' },
+              { targets: 4, width: '15%' },
+            ],
+          }}
         />
       </div>
 
@@ -295,7 +337,7 @@ const CourseDetail: React.FC = () => {
           >
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Add Course
+                Add Chapter
               </h3>
             </div>
             <div className="flex flex-col gap-5.5 p-6.5">
