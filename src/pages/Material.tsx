@@ -18,7 +18,7 @@ const Material: React.FC = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [materialExists, setMaterialExists] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const [froalaLoading, setFroalaLoading] = useState(true); // Loading state for FroalaEditor
   const [froalaRender, setFroalaRender] = useState(false);
 
@@ -27,7 +27,7 @@ const Material: React.FC = () => {
       console.error('ID is null or undefined');
       return;
     }
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       const response = await api.get<MaterialDto>(`/chapter/${id}/materials`);
       if (response.data?.id) {
@@ -40,14 +40,14 @@ const Material: React.FC = () => {
       } else {
         setMaterialExists(false);
         setMaterialData({ material: {} as MaterialDto, froalaContent: '' });
-        setFroalaLoading(true); // No data, Froala should not render
+        setFroalaLoading(false); // No data, Froala should not render
       }
     } catch (error) {
       console.error('Error fetching data:', error);
       setMaterialExists(false);
-      setFroalaLoading(true); // Error occured, Froala should not render
+      // setFroalaLoading(true); // Error occured, Froala should not render
     } finally {
-      setIsLoading(false);
+      // setIsLoading(false);
     }
   }, [id]);
 

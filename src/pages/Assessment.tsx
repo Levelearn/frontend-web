@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/api';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface Question {
   question: string;
@@ -20,8 +20,10 @@ interface AssessmentDto {
 }
 
 const Assessment: React.FC = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [instruction, setInstruction] = useState<string>('');
+  const [assessId, setAssessId] = useState<number>();
   const [assessmentExist, setAssessmentExist] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -44,6 +46,7 @@ const Assessment: React.FC = () => {
 
       if (response.data && response.data.id) {
         setInstruction(response.data.instruction);
+        setAssessId(response.data.id);
         if (response.data.questions) {
           try {
             const parsedQuestions: Question[] = JSON.parse(
@@ -82,17 +85,24 @@ const Assessment: React.FC = () => {
     }
   };
 
-  const handleSaveQuestion = () => {
+  const handleSaveQuestion = async () => {
     const newQuestion: Question = {
       question: newQuestionText,
       options: questionType === 'MC' ? currentOptions : undefined,
       answer: questionType === 'MC' ? newAnswerText : '',
       type: questionType as 'MC' | 'EY',
     };
-
-    // console.log(newQuestion);
     // console.log(JSON.stringify([...questions, newQuestion]));
-    setQuestions([...questions, newQuestion]);
+    // setQuestions([...questions, newQuestion]);
+    try {
+      const response = await api.put(`/assessment/${assessId}`, {
+        questions: JSON.stringify([...questions, newQuestion]),
+      });
+      fetchData();
+    } catch (err) {
+      console.error('Error while updating questions: ', err);
+    }
+
     setNewQuestionText('');
     setCurrentOptions([]);
     setNewAnswerText('');
@@ -144,14 +154,20 @@ const Assessment: React.FC = () => {
             {instruction}
           </div>
           {questions.length > 0 && (
-            <div>
+            <div className='border rounded-lg p-4 mt-4'>
               {questions.map((q, index) => (
-                <div key={index} className="mt-2 border rounded-lg p-4">
+                <div key={index} className="">
+                  {index !== 0 && (
+                    <hr className='my-2'/>
+                  )}
                   <div className="flex justify-between">
                     <p className="grid content-center">
                       <strong>Pertanyaan {index + 1}</strong>
                     </p>
-                    <button className="bg-warning px-4 py-2 rounded-md">
+                    <button
+                      className="bg-warning px-4 py-2 rounded-md"
+                      onClick={() => navigate(`/edit-question/${id}/${index}`)}
+                    >
                       <svg
                         viewBox="0 0 512 512"
                         width="20"
@@ -162,9 +178,8 @@ const Assessment: React.FC = () => {
                       </svg>
                     </button>
                   </div>
-                  <hr className="my-2" />
                   <p>{q.question}</p>
-                  <p>
+                  <p className='mt-2'>
                     <strong>Tipe</strong> <br />
                     {q.type === 'MC' ? 'Pilihan Berganda' : 'Esai'}
                   </p>
@@ -172,21 +187,21 @@ const Assessment: React.FC = () => {
                     q.options &&
                     Array.isArray(q.options) &&
                     q.options.length > 0 && (
-                      <div>
+                      <div className='mt-2'>
                         <p>
                           <strong>Opsi</strong>
                         </p>
                         {q.options.map((option, optionIndex) => (
-                          <div key={optionIndex}>{option}</div>
+                          <div key={optionIndex}>• {option}</div>
                         ))}
-                        <p>
+                        <p className='mt-2'>
                           <strong>Jawaban</strong>
                           <br /> {q.answer}
                         </p>
                       </div>
                     )}
                   {q.type === 'EY' && (
-                    <p>
+                    <p className='mt-2'>
                       <strong>Jawaban (Esai)</strong>
                       <br />-
                     </p>

@@ -25,6 +25,7 @@ import User from './pages/User';
 import CourseDetail from './pages/CourseDetail';
 import UserCourse from './pages/UserCourse';
 import Testing from './pages/Testing';
+import EditQuestion from './pages/EditQuestion';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -230,6 +231,15 @@ function App() {
             <>
               <PageTitle title="testing" />
               <Testing />
+            </>
+          }
+        />
+        <Route
+          path="/edit-question/:id/:index"
+          element={
+            <>
+              <PageTitle title="testing" />
+              <EditQuestion />
             </>
           }
         />

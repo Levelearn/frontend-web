@@ -31,6 +31,7 @@ const Testing = () => {
             <li key={test.id} className="border-b py-4">
               <h3 className="font-bold text-lg">{test.name}</h3>
               <FroalaEditorView model={test.content} />
+              {/* {test.content} */}
             </li>
           ))
         ) : (
