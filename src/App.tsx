@@ -17,7 +17,6 @@ import Alerts from './pages/UiElements/Alerts';
 import Buttons from './pages/UiElements/Buttons';
 import DefaultLayout from './layout/DefaultLayout';
 import Course from './pages/Course';
-import Chapter from './pages/Chapter';
 import Material from './pages/Material';
 import Assessment from './pages/Assessment';
 import Assignment from './pages/Assignment';
@@ -26,6 +25,7 @@ import CourseDetail from './pages/CourseDetail';
 import UserCourse from './pages/UserCourse';
 import Testing from './pages/Testing';
 import EditQuestion from './pages/EditQuestion';
+import Badge from './pages/Badge';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -171,11 +171,11 @@ function App() {
           }
         />
         <Route
-          path="/chapter"
+          path="/Badge"
           element={
             <>
               <PageTitle title="Chapter" />
-              <Chapter />
+              <Badge />
             </>
           }
         />
