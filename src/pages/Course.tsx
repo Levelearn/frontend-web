@@ -112,14 +112,14 @@ const Course: React.FC = () => {
   };
 
   const columns = [
-    {
-      data: 'image',
-      title: 'Image',
-      render: (data: string) =>
-        `<img src="${ProductOne}" alt="Course" class="w-12 h-12 rounded-md" />`,
-      orderable: false,
-      searchable: false,
-    },
+    // {
+    //   data: 'image',
+    //   title: 'Image',
+    //   render: (data: string) =>
+    //     `<img src="${ProductOne}" alt="Course" class="w-12 h-12 rounded-md" />`,
+    //   orderable: false,
+    //   searchable: false,
+    // },
     { data: 'name', title: 'Name' },
     { data: 'code', title: 'Code' },
     // { data: 'students', title: 'Students', searchable: false },
