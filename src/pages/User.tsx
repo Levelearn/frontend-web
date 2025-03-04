@@ -340,7 +340,7 @@ export default function User() {
                     onClick={() => {
                       handleAddUser().then();
                     }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
                     Save
                   </button>
@@ -471,7 +471,7 @@ export default function User() {
                     onClick={() => {
                       handleEditUser().then();
                     }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
                     Save
                   </button>

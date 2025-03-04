@@ -4,6 +4,7 @@ export interface ChapterDto {
   description: string,
   level: number,
   courseId: number,
+  isCheckpoint: number,
   createdAt: string,
   updatedAt: string,
 }
@@ -17,4 +18,5 @@ export interface AddChapterDto {
 export interface UpdateChapterDto {
   name?: string,
   description?: string,
+  isCheckpoint?: number,
 }

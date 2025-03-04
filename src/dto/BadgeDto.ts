@@ -1,6 +1,7 @@
 export interface BadgeDto {
   id: number;
   name: string;
+  image: string;
   type: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE';
   courseId: number;
   chapterId: number;
@@ -10,6 +11,7 @@ export interface BadgeDto {
 
 export interface AddBadgeDto {
   name: string;
+  image: string;
   type: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE';
   courseId: number;
   chapterId: number;
@@ -17,6 +19,7 @@ export interface AddBadgeDto {
 
 export interface UpdateBadgeDto {
   name?: string;
+  image?: string;
   type?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE';
   courseId: number;
   chapterId: number;

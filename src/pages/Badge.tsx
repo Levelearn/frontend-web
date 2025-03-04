@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { AddBadgeDto, BadgeDto, UpdateBadgeDto } from '../dto/BadgeDto';
 import api from '../api/api';
 import { CourseDto } from '../dto/CourseDto';
-import { ChapterDto } from '../dto/ChapterDto';
+import { ChapterDto, UpdateChapterDto } from '../dto/ChapterDto';
+import PlaceholderImg from '../images/placeholder-image.png';
+import { supabase } from '../api/supabase';
 
 const Badge: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -15,6 +17,9 @@ const Badge: React.FC = () => {
   const [type, setType] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE'>(
     'BEGINNER',
   );
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [oldImageUrl, setOldImageUrl] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [courseId, setCourseId] = useState<number>(0);
   const [chapterId, setChapterId] = useState<number>(0);
   const [badgeId, setBadgeId] = useState<number>(0);
@@ -63,6 +68,17 @@ const Badge: React.FC = () => {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file)); // Membuat URL untuk preview
+    } else {
+      setImageFile(null);
+      setImagePreview(null); // Menghapus preview jika tidak ada file
+    }
+  };
+
   useEffect(() => {
     fetchData();
     fetchCourse();
@@ -79,6 +95,9 @@ const Badge: React.FC = () => {
     setChapterId(0);
     setIsAddModalOpen(false);
     setIsEditModalOpen(false);
+    setImageFile(null);
+    setImagePreview(null);
+    setOldImageUrl(null);
   };
 
   const handleEditModal = (data: BadgeDto) => {
@@ -87,6 +106,8 @@ const Badge: React.FC = () => {
     setType(data.type);
     setCourseId(data.courseId);
     setChapterId(data.chapterId);
+    setOldImageUrl(data.image);
+    setImagePreview(data.image);
     setIsEditModalOpen(true);
   };
 
@@ -100,15 +121,58 @@ const Badge: React.FC = () => {
   };
 
   const handleAddBadge = async () => {
-    const uploadData: AddBadgeDto = {
-      name: name,
-      type: type,
-      courseId: courseId,
-      chapterId: chapterId,
-    };
+    if (!imageFile) {
+      alert('Please select an image.');
+      return;
+    }
+
+    const fileName = `${Date.now()}-${imageFile.name}`;
+    const filePath = `badge/${chapterId}/${fileName}`;
+
     try {
-      const response = await api.post<AddBadgeDto>('/badge', uploadData);
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('assignment')
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        if (uploadError instanceof Error) {
+          console.error('Error uploading image:', uploadError.message);
+        } else {
+          console.error('Unknown error uploading image:', uploadError);
+        }
+        alert('Failed to upload image.');
+        return;
+      }
+
+      const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+
+      const uploadBadgeData: AddBadgeDto = {
+        name: name,
+        type: type,
+        courseId: courseId,
+        chapterId: chapterId,
+        image: imageUrl,
+      };
+
+      const response = await api.post<AddBadgeDto>('/badge', uploadBadgeData);
       console.log(response.data);
+
+      let checkpoint = 0;
+
+      if(type === 'BEGINNER') {
+        checkpoint = 1;
+      } else if(type === 'INTERMEDIATE') {
+        checkpoint = 2;
+      } else if(type === 'ADVANCE') {
+        checkpoint = 3;
+      }
+
+      const uploadChapterData: UpdateChapterDto = {
+        isCheckpoint: checkpoint,
+      }
+
+      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
+      console.log(responseChapter.data);
 
       handleClearForm();
       fetchData();
@@ -118,11 +182,58 @@ const Badge: React.FC = () => {
   };
 
   const handleEditBadge = async () => {
+    let imageUrl = oldImageUrl;
+
+    if (imageFile) {
+      if (oldImageUrl) {
+        try {
+          const oldFilePath = oldImageUrl.split('/assignment/')[1];
+          if (oldFilePath) {
+            const { error: deleteError } = await supabase.storage
+              .from('assignment')
+              .remove([oldFilePath]);
+
+            if (deleteError) {
+              console.error('Error deleting old image:', deleteError);
+              alert('Failed to delete old image.');
+              return;
+            }
+          }
+        } catch (deleteErr) {
+          console.error('Error deleting old image:', deleteErr);
+          alert('Failed to delete old image.');
+          return;
+        }
+      }
+ 
+      const fileName = `${Date.now()}-${imageFile.name}`;
+      const filePath = `badge/${chapterId}/${fileName}`;
+
+      try {
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('assignment')
+          .upload(filePath, imageFile);
+
+        if (uploadError) {
+          console.error('Error uploading new image:', uploadError);
+          alert('Failed to upload new image.');
+          return;
+        }
+
+        imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      } catch (uploadErr) {
+        console.error('Error uploading new image:', uploadErr);
+        alert('Failed to upload new image.');
+        return;
+      }
+    }
+
     const uploadData: UpdateBadgeDto = {
       name: name !== '' ? name : undefined,
       type: type,
       courseId: courseId,
       chapterId: chapterId,
+      image: imageUrl || undefined, // Gunakan URL gambar baru atau lama
     };
 
     try {
@@ -132,15 +243,69 @@ const Badge: React.FC = () => {
       );
       console.log(response.data);
 
+      let checkpoint = 0;
+
+      if(type === 'BEGINNER') {
+        checkpoint = 1;
+      } else if(type === 'INTERMEDIATE') {
+        checkpoint = 2;
+      } else if(type === 'ADVANCE') {
+        checkpoint = 3;
+      }
+
+      const uploadChapterData: UpdateChapterDto = {
+        isCheckpoint: checkpoint,
+      }
+
+      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
+      console.log(responseChapter.data);
+
+
       handleClearForm();
       fetchData();
     } catch (err) {
       console.error('Error while updating badge: ', err);
     }
   };
+  // const handleEditBadge = async () => {
+  //   const uploadData: UpdateBadgeDto = {
+  //     name: name !== '' ? name : undefined,
+  //     type: type,
+  //     courseId: courseId,
+  //     chapterId: chapterId,
+  //   };
 
-  const handleDeleteBadge = async (id: number) => {
+  //   try {
+  //     const response = await api.put<UpdateBadgeDto>(
+  //       `/badge/${badgeId}`,
+  //       uploadData,
+  //     );
+  //     console.log(response.data);
+
+  //     handleClearForm();
+  //     fetchData();
+  //   } catch (err) {
+  //     console.error('Error while updating badge: ', err);
+  //   }
+  // };
+
+  const handleDeleteBadge = async (id: number, imageUrl?: string) => {
     try {
+      if (imageUrl) {
+        const oldFilePath = imageUrl.split('/assignment/')[1];
+        if (oldFilePath) {
+          const { error: deleteStorageError } = await supabase.storage
+            .from('assignment')
+            .remove([oldFilePath]);
+  
+          if (deleteStorageError) {
+            console.error('Error deleting image from storage:', deleteStorageError);
+            alert('Failed to delete image from storage.');
+            return;
+          }
+        }
+      }
+
       const response = await api.delete(`/badge/${id}`);
       console.log(response.data);
 
@@ -214,7 +379,7 @@ const Badge: React.FC = () => {
           'bg-danger',
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z"/></svg>`, // Example SVG for view
           'Delete',
-          () => handleDeleteBadge(rowData.id),
+          () => handleDeleteBadge(rowData.id, rowData.image),
         );
 
         buttonContainer.appendChild(editButton);
@@ -250,7 +415,7 @@ const Badge: React.FC = () => {
       </div>
 
       {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -356,6 +521,35 @@ const Badge: React.FC = () => {
                   </select>
                 </div>
 
+                <div className="mb-4">
+                  <label
+                    htmlFor="image"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Image
+                  </label>
+                  <input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="border w-full h-60 object-cover rounded-lg mt-5"
+                    />
+                  ) : (
+                    <img
+                      src={PlaceholderImg}
+                      alt="Placeholder"
+                      className="border w-full h-60 object-cover rounded-lg mt-5"
+                    />
+                  )}
+                </div>
+
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => handleClearForm()}
@@ -367,7 +561,7 @@ const Badge: React.FC = () => {
                     onClick={() => {
                       handleAddBadge().then();
                     }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
                     Save
                   </button>
@@ -379,7 +573,7 @@ const Badge: React.FC = () => {
       )}
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -481,6 +675,35 @@ const Badge: React.FC = () => {
                   </select>
                 </div>
 
+                <div className="mb-4">
+                  <label
+                    htmlFor="image"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Image
+                  </label>
+                  <input
+                    type="file"
+                    id="image"
+                    accept="image/*"
+                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="border w-full h-60 object-cover rounded-lg mt-5"
+                    />
+                  ) : (
+                    <img
+                      src={PlaceholderImg}
+                      alt="Placeholder"
+                      className="border w-full h-60 object-cover rounded-lg mt-5"
+                    />
+                  )}
+                </div>
+
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => handleClearForm()}
@@ -492,7 +715,7 @@ const Badge: React.FC = () => {
                     onClick={() => {
                       handleEditBadge().then();
                     }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
                     Save
                   </button>

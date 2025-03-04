@@ -24,9 +24,9 @@ export interface AddUserDto {
 }
 
 export interface EditUserDto {
-  username: string;
-  name: string;
-  role: "ADMIN" | "STUDENT" | "INSTRUCTOR"; 
+  username?: string;
+  name?: string;
+  role?: "ADMIN" | "STUDENT" | "INSTRUCTOR"; 
   studentId?: string | null;
   instructorId?: string | null;
 }

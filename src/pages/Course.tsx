@@ -331,7 +331,7 @@ const EditCourseModal: React.FC<ModalProps<UpdateCourseDto>> = ({
         <img
           src={PlaceholderImg}
           alt="Placeholder"
-          className="w-full h-100 object-cover rounded-lg mt-5"
+          className="w-full h-60 object-cover rounded-lg mt-5"
         />
       </div>
 
@@ -345,7 +345,7 @@ const EditCourseModal: React.FC<ModalProps<UpdateCourseDto>> = ({
         </button>
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
         >
           Save
         </button>
@@ -405,7 +405,7 @@ const AddCourseModal: React.FC<ModalProps<AddCourseDto>> = ({
         <img
           src={PlaceholderImg}
           alt="Placeholder"
-          className="w-full h-100 object-cover rounded-lg mt-5"
+          className="w-full h-60 object-cover rounded-lg mt-5"
         />
       </div>
 
@@ -419,7 +419,7 @@ const AddCourseModal: React.FC<ModalProps<AddCourseDto>> = ({
         </button>
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
         >
           Save
         </button>

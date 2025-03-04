@@ -60,6 +60,23 @@ const Assignment: React.FC<AssignmentProps> = () => {
     }
   };
 
+  const deleteFileFromSupabase = async (fileUrl: string) => {
+    if (!fileUrl) return;
+
+    const fileName = fileUrl.split('/').pop();
+    if (!fileName) return;
+
+    const filePath = `assignment/${id}/${fileName}`;
+
+    const { error } = await supabase.storage
+      .from('assignment')
+      .remove([filePath]);
+    if (error) {
+      console.error('Error deleting file:', error);
+      setErrorMessage('Failed to delete old file.');
+    }
+  };
+
   const handleSaveAssignment = async () => {
     setIsLoading(true);
     setErrorMessage('');
@@ -71,17 +88,15 @@ const Assignment: React.FC<AssignmentProps> = () => {
     }
 
     let uploadedFileUrl = fileUrl;
+    let oldFileUrl = fileUrl; // Simpan URL file lama
 
     try {
       if (file) {
         const filePath = `assignment/${id}/${encodeURIComponent(file.name)}`;
-        console.log('Uploading to:', filePath);
-        console.log('File to upload:', file);
-
         const { data, error }: { data: any; error: any } =
-          await supabase.storage.from('assignment').upload(filePath, file);
-
-        console.log('Supabase upload response:', { data, error });
+          await supabase.storage.from('assignment').upload(filePath, file, {
+            upsert: true,
+          });
 
         if (error) {
           console.error('Error uploading file:', error.message);
@@ -91,6 +106,11 @@ const Assignment: React.FC<AssignmentProps> = () => {
         }
 
         uploadedFileUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+
+        // Hapus file lama jika ada dan berbeda dengan file baru
+        if (oldFileUrl && oldFileUrl !== uploadedFileUrl) {
+          await deleteFileFromSupabase(oldFileUrl);
+        }
       }
 
       const chapterId = Number(id);
@@ -120,6 +140,67 @@ const Assignment: React.FC<AssignmentProps> = () => {
       setIsLoading(false);
     }
   };
+
+  // const handleSaveAssignment = async () => {
+  //   setIsLoading(true);
+  //   setErrorMessage('');
+
+  //   if (!instruction.trim()) {
+  //     setErrorMessage('Instruction cannot be empty.');
+  //     setIsLoading(false);
+  //     return;
+  //   }
+
+  //   let uploadedFileUrl = fileUrl;
+
+  //   try {
+  //     if (file) {
+  //       const filePath = `assignment/${id}/${encodeURIComponent(file.name)}`;
+  //       console.log('Uploading to:', filePath);
+  //       console.log('File to upload:', file);
+
+  //       const { data, error }: { data: any; error: any } =
+  //         await supabase.storage.from('assignment').upload(filePath, file);
+
+  //       console.log('Supabase upload response:', { data, error });
+
+  //       if (error) {
+  //         console.error('Error uploading file:', error.message);
+  //         setErrorMessage('Failed to upload file.');
+  //         setIsLoading(false);
+  //         return;
+  //       }
+
+  //       uploadedFileUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+  //     }
+
+  //     const chapterId = Number(id);
+
+  //     if (assignmentExist && assignId) {
+  //       const payload: UpdateAssignmentDto = {
+  //         chapterId: chapterId,
+  //         instruction: instruction,
+  //         fileUrl: uploadedFileUrl,
+  //       };
+  //       await api.put(`/assignment/${assignId}`, payload);
+  //     } else {
+  //       const payload: AddAssignmentDto = {
+  //         chapterId: chapterId,
+  //         instruction: instruction,
+  //         fileUrl: uploadedFileUrl,
+  //       };
+  //       await api.post(`/assignment`, payload);
+  //     }
+
+  //     setIsEditing(false);
+  //     fetchData();
+  //   } catch (error: any) {
+  //     console.error('Error saving assignment:', error);
+  //     setErrorMessage(error.message || 'Failed to save assignment.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleAddAssignmentClick = () => {
     setInstruction('');
@@ -183,7 +264,12 @@ const Assignment: React.FC<AssignmentProps> = () => {
             </div>
             {fileUrl && (
               <div className="mt-4">
-                <a className='text-boxdark-2 hover:text-primary' href={fileUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  className="text-boxdark-2 hover:text-primary"
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   View uploaded file
                 </a>
               </div>
