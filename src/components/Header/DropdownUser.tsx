@@ -4,6 +4,7 @@ import ClickOutside from '../ClickOutside';
 import UserOne from '../../images/user/user-01.png';
 
 const DropdownUser = () => {
+  const user = JSON.parse(localStorage.getItem('user') || '');
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -12,7 +13,9 @@ const DropdownUser = () => {
     navigate('/login'); // Arahkan ke halaman login
   };
 
+
   return (
+    
     <ClickOutside onClick={() => setDropdownOpen(false)} className="relative">
       <Link
         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -20,10 +23,10 @@ const DropdownUser = () => {
         to="#"
       >
         <span className="hidden text-right lg:block">
-          <span className="block text-sm font-medium text-black dark:text-white">
-            MIMIN
+          <span className="block text-sm font-medium text-black dark:text-white uppercase">
+            {user.name}
           </span>
-          <span className="block text-xs">Administrator</span>
+          <span className="block text-xs">{user.role}</span>
         </span>
 
         <span className="h-12 w-12 rounded-full">

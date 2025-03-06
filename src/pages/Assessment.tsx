@@ -1,23 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/api';
 import { useNavigate, useParams } from 'react-router-dom';
-
-interface Question {
-  question: string;
-  options?: string[];
-  answer: string;
-  type: 'MC' | 'EY';
-}
-
-interface AssessmentDto {
-  id: number;
-  chapterId: number;
-  instruction: string;
-  questions?: string | null;
-  answers?: any | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import { AssessmentDto, Question } from '../dto/AssessmentDto';
 
 const Assessment: React.FC = () => {
   const navigate = useNavigate();

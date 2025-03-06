@@ -330,7 +330,7 @@ const CourseDetail: React.FC = () => {
       </div>
 
       {isAddModalOpen && ( // Add Modal Conditional Rendering
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -353,7 +353,7 @@ const CourseDetail: React.FC = () => {
       )}
 
       {isEditModalOpen && ( // Add Modal Conditional Rendering
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}

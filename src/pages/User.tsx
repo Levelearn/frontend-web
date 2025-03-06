@@ -37,7 +37,7 @@ export default function User() {
     const uploadData: AddUserDto = {
       name: name,
       username: username,
-      password: username,
+      password: 'password',
       role: role,
       instructor_id: instructor_id,
       student_id: student_id,

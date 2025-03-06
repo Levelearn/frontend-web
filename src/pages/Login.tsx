@@ -12,9 +12,14 @@ const Login: React.FC = () => {
 
     try {
       const response = await api.post('/login', payload);
-      localStorage.setItem('token', response.data.token);
-      // console.log(response.data.token);
-      navigate('/course');
+      if(response.data.data.role === "STUDENT") {
+        return ;
+      } else {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        navigate('/course');
+      }
+      // console.log(response.data.data);
     } catch (err) {
       console.error('Login error:', err);
     }

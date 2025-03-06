@@ -27,6 +27,7 @@ import Testing from './pages/Testing';
 import EditQuestion from './pages/EditQuestion';
 import Badge from './pages/Badge';
 import Login from './pages/Login';
+import Trade from './pages/Trade';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -250,8 +251,17 @@ function App() {
                   path="/edit-question/:id/:index"
                   element={
                     <>
-                      <PageTitle title="testing" />
+                      <PageTitle title="Edit Question" />
                       <EditQuestion />
+                    </>
+                  }
+                />
+                <Route
+                  path="/trade"
+                  element={
+                    <>
+                      <PageTitle title="Trades" />
+                      <Trade />
                     </>
                   }
                 />

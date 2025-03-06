@@ -1,28 +1,21 @@
 import DataTable from 'datatables.net-react';
 import { useEffect, useState } from 'react';
-import { AddBadgeDto, BadgeDto, UpdateBadgeDto } from '../dto/BadgeDto';
 import api from '../api/api';
-import { CourseDto } from '../dto/CourseDto';
-import { ChapterDto, UpdateChapterDto } from '../dto/ChapterDto';
 import PlaceholderImg from '../images/placeholder-image.png';
 import { supabase } from '../api/supabase';
+import { AddTradeDto, TradeDto, UpdateTradeDto } from '../dto/TradeDto';
 
-const Badge: React.FC = () => {
+const Trade: React.FC = () => {
+  const [data, setData] = useState<TradeDto[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
-  const [data, setData] = useState<BadgeDto[]>([]);
-  const [course, setCourse] = useState<CourseDto[]>([]);
-  const [chapter, setChapter] = useState<ChapterDto[]>([]);
-  const [name, setName] = useState<string>('');
-  const [type, setType] = useState<'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE'>(
-    'BEGINNER',
-  );
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const [badgeType, setBadgeType] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [oldImageUrl, setOldImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [courseId, setCourseId] = useState<number>(0);
-  const [chapterId, setChapterId] = useState<number>(0);
-  const [badgeId, setBadgeId] = useState<number>(0);
+  const [tradeId, setTradeId] = useState<number>(0);
 
   const selectStyle = `
   .custom-select {
@@ -37,36 +30,46 @@ const Badge: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const response = await api.get<BadgeDto[]>('/badge');
+      const response = await api.get<TradeDto[]>('/trade');
       setData(response.data);
     } catch (err) {
-      console.error('Error while getting badge: ', err);
+      console.error('Error while getting trade: ', err);
     }
   };
 
-  const fetchCourse = async () => {
-    try {
-      const response = await api.get<CourseDto[]>('/course');
-      setCourse(response.data);
-    } catch (err) {
-      console.error('Error while getting course: ', err);
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const truncateText = (text: string, wordLimit: number): string => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length > wordLimit) {
+      return words.slice(0, wordLimit).join(' ') + ' ...';
     }
+    return text;
   };
 
-  const fetchChapters = async (courseId: number | undefined) => {
-    try {
-      if (courseId) {
-        const response = await api.get<ChapterDto[]>(
-          `/course/${courseId}/chapters`,
-        );
-        setChapter(response.data);
-      } else {
-        setChapter([]);
-      }
-    } catch (err) {
-      console.error('Error while getting chapter: ', err);
-    }
+  const handleClearForm = () => {
+    setTitle('');
+    setTradeId(0);
+    setDescription('');
+    setImageFile(null);
+    setImagePreview(null);
+    setOldImageUrl(null);
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
   };
+
+  const handleEditModal = (data: TradeDto) => {
+    setTradeId(data.id);
+    setTitle(data.title);
+    setDescription(data.description);
+    setBadgeType(data.requiredBadgeType);
+    setOldImageUrl(data.image);
+    setImagePreview(data.image);
+    setIsEditModalOpen(true);
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -79,55 +82,14 @@ const Badge: React.FC = () => {
     } 
   };
 
-  useEffect(() => {
-    fetchData();
-    fetchCourse();
-  }, []);
-
-  useEffect(() => {
-    fetchChapters(courseId);
-  }, [courseId]);
-
-  const handleClearForm = () => {
-    setName('');
-    setType('BEGINNER');
-    setCourseId(0);
-    setChapterId(0);
-    setIsAddModalOpen(false);
-    setIsEditModalOpen(false);
-    setImageFile(null);
-    setImagePreview(null);
-    setOldImageUrl(null);
-  };
-
-  const handleEditModal = (data: BadgeDto) => {
-    setBadgeId(data.id);
-    setName(data.name);
-    setType(data.type);
-    setCourseId(data.courseId);
-    setChapterId(data.chapterId);
-    setOldImageUrl(data.image);
-    setImagePreview(data.image);
-    setIsEditModalOpen(true);
-  };
-
-  const truncateText = (text: string, wordLimit: number): string => {
-    if (!text) return '';
-    const words = text.split(' ');
-    if (words.length > wordLimit) {
-      return words.slice(0, wordLimit).join(' ') + ' ...';
-    }
-    return text;
-  };
-
-  const handleAddBadge = async () => {
+  const handleAddTrade = async () => {
     if (!imageFile) {
       alert('Please select an image.');
       return;
     }
 
     const fileName = `${Date.now()}-${imageFile.name}`;
-    const filePath = `badge/${chapterId}/${fileName}`;
+    const filePath = `trade/${fileName}`;
 
     try {
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -146,33 +108,15 @@ const Badge: React.FC = () => {
 
       const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
-      const uploadBadgeData: AddBadgeDto = {
-        name: name,
-        type: type,
-        courseId: courseId,
-        chapterId: chapterId,
+      const tradePayload: AddTradeDto = {
+        title: title,
+        description: description,
+        requiredBadgeType: badgeType,
         image: imageUrl,
       };
 
-      const response = await api.post<AddBadgeDto>('/badge', uploadBadgeData);
+      const response = await api.post<AddTradeDto>('/trade', tradePayload);
       console.log(response.data);
-
-      let checkpoint = 0;
-
-      if(type === 'BEGINNER') {
-        checkpoint = 1;
-      } else if(type === 'INTERMEDIATE') {
-        checkpoint = 2;
-      } else if(type === 'ADVANCE') {
-        checkpoint = 3;
-      }
-
-      const uploadChapterData: UpdateChapterDto = {
-        isCheckpoint: checkpoint,
-      }
-
-      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
-      console.log(responseChapter.data);
 
       handleClearForm();
       fetchData();
@@ -181,7 +125,7 @@ const Badge: React.FC = () => {
     }
   };
 
-  const handleEditBadge = async () => {
+  const handleEditTrade = async () => {
     let imageUrl = oldImageUrl;
 
     if (imageFile) {
@@ -207,7 +151,7 @@ const Badge: React.FC = () => {
       }
  
       const fileName = `${Date.now()}-${imageFile.name}`;
-      const filePath = `badge/${chapterId}/${fileName}`;
+      const filePath = `trade/${fileName}`;
 
       try {
         const { data: uploadData, error: uploadError } = await supabase.storage
@@ -228,38 +172,24 @@ const Badge: React.FC = () => {
       }
     }
 
-    const uploadData: UpdateBadgeDto = {
-      name: name !== '' ? name : undefined,
-      type: type,
-      courseId: courseId,
-      chapterId: chapterId,
-      image: imageUrl || undefined, // Gunakan URL gambar baru atau lama
+    const uploadData: UpdateTradeDto = {
+      // name: name !== '' ? name : undefined,
+      // type: type,
+      // courseId: courseId,
+      // chapterId: chapterId,
+      // image: imageUrl || undefined, 
+      title: title !== '' ? title : undefined,
+      description: description !== '' ? description : undefined,
+      requiredBadgeType: badgeType !== '' ? badgeType : undefined,
+      image: imageUrl || undefined, 
     };
 
     try {
-      const response = await api.put<UpdateBadgeDto>(
-        `/badge/${badgeId}`,
+      const response = await api.put<UpdateTradeDto>(
+        `/trade/${tradeId}`,
         uploadData,
       );
       console.log(response.data);
-
-      let checkpoint = 0;
-
-      if(type === 'BEGINNER') {
-        checkpoint = 1;
-      } else if(type === 'INTERMEDIATE') {
-        checkpoint = 2;
-      } else if(type === 'ADVANCE') {
-        checkpoint = 3;
-      }
-
-      const uploadChapterData: UpdateChapterDto = {
-        isCheckpoint: checkpoint,
-      }
-
-      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
-      console.log(responseChapter.data);
-
 
       handleClearForm();
       fetchData();
@@ -267,29 +197,8 @@ const Badge: React.FC = () => {
       console.error('Error while updating badge: ', err);
     }
   };
-  // const handleEditBadge = async () => {
-  //   const uploadData: UpdateBadgeDto = {
-  //     name: name !== '' ? name : undefined,
-  //     type: type,
-  //     courseId: courseId,
-  //     chapterId: chapterId,
-  //   };
 
-  //   try {
-  //     const response = await api.put<UpdateBadgeDto>(
-  //       `/badge/${badgeId}`,
-  //       uploadData,
-  //     );
-  //     console.log(response.data);
-
-  //     handleClearForm();
-  //     fetchData();
-  //   } catch (err) {
-  //     console.error('Error while updating badge: ', err);
-  //   }
-  // };
-
-  const handleDeleteBadge = async (id: number, imageUrl?: string) => {
+  const handleDeleteTrade = async (id: number, imageUrl?: string) => {
     try {
       if (imageUrl) {
         const oldFilePath = imageUrl.split('/assignment/')[1];
@@ -306,7 +215,7 @@ const Badge: React.FC = () => {
         }
       }
 
-      const response = await api.delete(`/badge/${id}`);
+      const response = await api.delete(`/trade/${id}`);
       console.log(response.data);
 
       fetchData();
@@ -316,28 +225,24 @@ const Badge: React.FC = () => {
   };
 
   const columns = [
-    { data: 'name', title: 'Name' },
-    { data: 'type', title: 'Type' },
+    { data: 'title', title: 'Title' },
     {
-      data: 'course.name',
-      title: 'Course',
+      data: 'description',
+      title: 'Description',
       createdCell: (cell: HTMLTableCellElement, cellData: string) => {
-        cell.textContent = truncateText(cellData, 5);
+        cell.textContent = truncateText(cellData, 10);
       },
     },
     {
-      data: 'chapter.name',
-      title: 'Chapter',
-      createdCell: (cell: HTMLTableCellElement, cellData: string) => {
-        cell.textContent = truncateText(cellData, 5);
-      },
+      data: 'requiredBadgeType',
+      title: 'Required',
     },
     {
       data: null,
       title: 'Actions',
       orderable: false,
       searchable: false,
-      createdCell: (cell: HTMLTableCellElement, _: any, rowData: BadgeDto) => {
+      createdCell: (cell: HTMLTableCellElement, _: any, rowData: TradeDto) => {
         cell.innerHTML = '';
 
         const buttonContainer = document.createElement('div');
@@ -379,7 +284,7 @@ const Badge: React.FC = () => {
           'bg-danger',
           `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z"/></svg>`, // Example SVG for view
           'Delete',
-          () => handleDeleteBadge(rowData.id, rowData.image),
+          () => handleDeleteTrade(rowData.id, rowData.image),
         );
 
         buttonContainer.appendChild(editButton);
@@ -393,14 +298,14 @@ const Badge: React.FC = () => {
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
       <style>{selectStyle}</style>
-      <h1 className="text-2xl font-bold pb-5">Badge Management</h1>
+      <h1 className="text-2xl font-bold pb-5">Trade Management</h1>
       <hr />
       <div className="text-end mt-6">
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
         >
-          Add Badge
+          Add Trade
         </button>
       </div>
       <div className="max-w-full overflow-x-auto ">
@@ -408,9 +313,11 @@ const Badge: React.FC = () => {
           data={data}
           columns={columns}
           className="display nowrap w-full"
-          options={{
-            order: [[5, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
-          }}
+          options={
+            {
+              // order: [[5, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
+            }
+          }
         />
       </div>
 
@@ -422,7 +329,7 @@ const Badge: React.FC = () => {
           >
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Add Badge
+                Add Trade
               </h3>
             </div>
             <div className="flex flex-col gap-5.5 p-6.5">
@@ -432,14 +339,14 @@ const Badge: React.FC = () => {
                     htmlFor="name"
                     className="mb-3 block text-black dark:text-white"
                   >
-                    Name
+                    Title
                   </label>
                   <input
                     type="text"
-                    id="name"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    id="title"
+                    name="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     placeholder="Input Name"
                   />
@@ -455,10 +362,10 @@ const Badge: React.FC = () => {
                   <select
                     name="role"
                     id="role"
-                    value={type}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                    value={badgeType}
+                    className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
                     onChange={(e) =>
-                      setType(
+                      setBadgeType(
                         e.target.value as
                           | 'BEGINNER'
                           | 'INTERMEDIATE'
@@ -474,51 +381,20 @@ const Badge: React.FC = () => {
 
                 <div className="mb-4">
                   <label
-                    htmlFor="course"
+                    htmlFor="name"
                     className="mb-3 block text-black dark:text-white"
                   >
-                    Course
+                    Description
                   </label>
-                  <select
-                    name="course"
-                    id="course"
-                    value={courseId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => {
-                      setCourseId(Number(e.target.value));
-                      setChapter([]);
-                    }}
-                  >
-                    <option value={undefined}>Pilih Course</option>
-                    {course.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="chapter"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Chapter
-                  </label>
-                  <select
-                    name="chapter"
-                    id="chapter"
-                    value={chapterId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => setChapterId(Number(e.target.value))}
-                  >
-                    <option value={undefined}>Pilih Chapter</option>
-                    {chapter.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                  <textarea
+                    rows={5}
+                    id="description"
+                    name="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    placeholder="Input Description"
+                  />
                 </div>
 
                 <div className="mb-4">
@@ -559,7 +435,7 @@ const Badge: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      handleAddBadge().then();
+                      handleAddTrade().then();
                     }}
                     className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
@@ -572,7 +448,7 @@ const Badge: React.FC = () => {
         </div>
       )}
 
-      {isEditModalOpen && (
+{isEditModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
@@ -580,7 +456,7 @@ const Badge: React.FC = () => {
           >
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Edit Badge
+                Add Trade
               </h3>
             </div>
             <div className="flex flex-col gap-5.5 p-6.5">
@@ -590,13 +466,14 @@ const Badge: React.FC = () => {
                     htmlFor="name"
                     className="mb-3 block text-black dark:text-white"
                   >
-                    Name
+                    Title
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    id="title"
+                    name="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                     placeholder="Input Name"
                   />
@@ -611,10 +488,11 @@ const Badge: React.FC = () => {
                   </label>
                   <select
                     name="role"
-                    value={type}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                    id="role"
+                    value={badgeType}
+                    className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
                     onChange={(e) =>
-                      setType(
+                      setBadgeType(
                         e.target.value as
                           | 'BEGINNER'
                           | 'INTERMEDIATE'
@@ -630,49 +508,20 @@ const Badge: React.FC = () => {
 
                 <div className="mb-4">
                   <label
-                    htmlFor="course"
+                    htmlFor="name"
                     className="mb-3 block text-black dark:text-white"
                   >
-                    Course
+                    Description
                   </label>
-                  <select
-                    name="course"
-                    value={courseId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => {
-                      setCourseId(Number(e.target.value));
-                      setChapter([]);
-                    }}
-                  >
-                    <option value={undefined}>Pilih Course</option>
-                    {course.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="chapter"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Chapter
-                  </label>
-                  <select
-                    name="chapter"
-                    value={chapterId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => setChapterId(Number(e.target.value))}
-                  >
-                    <option value={undefined}>Pilih Chapter</option>
-                    {chapter.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
+                  <textarea
+                    rows={5}
+                    id="description"
+                    name="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    placeholder="Input Description"
+                  />
                 </div>
 
                 <div className="mb-4">
@@ -713,7 +562,7 @@ const Badge: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      handleEditBadge().then();
+                      handleEditTrade().then();
                     }}
                     className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
                   >
@@ -729,4 +578,4 @@ const Badge: React.FC = () => {
   );
 };
 
-export default Badge;
+export default Trade;
