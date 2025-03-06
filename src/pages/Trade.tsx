@@ -11,7 +11,7 @@ const Trade: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [badgeType, setBadgeType] = useState<string>('');
+  const [badgeType, setBadgeType] = useState<string>('BEGINNER');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [oldImageUrl, setOldImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -54,6 +54,7 @@ const Trade: React.FC = () => {
     setTitle('');
     setTradeId(0);
     setDescription('');
+    setBadgeType('BEGINNER')
     setImageFile(null);
     setImagePreview(null);
     setOldImageUrl(null);
@@ -238,6 +239,11 @@ const Trade: React.FC = () => {
       title: 'Required',
     },
     {
+      data: 'createdAt',
+      title: 'Created At',
+      visible: false,
+    },
+    {
       data: null,
       title: 'Actions',
       orderable: false,
@@ -315,7 +321,7 @@ const Trade: React.FC = () => {
           className="display nowrap w-full"
           options={
             {
-              // order: [[5, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
+              order: [[3, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
             }
           }
         />
