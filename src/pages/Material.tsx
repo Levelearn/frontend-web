@@ -6,6 +6,13 @@ import FroalaEditor from 'react-froala-wysiwyg';
 import 'froala-editor/css/froala_style.min.css';
 import 'froala-editor/css/froala_editor.pkgd.min.css';
 import 'froala-editor/js/plugins/image.min.js';
+import 'froala-editor/js/plugins/lists.min.js';
+import 'froala-editor/js/plugins/table.min.js';
+import 'froala-editor/js/plugins/video.min.js';
+import 'froala-editor/js/plugins/link.min.js';
+import 'froala-editor/js/plugins/font_size.min.js';
+import 'froala-editor/js/plugins/code_beautifier.min.js';
+import 'froala-editor/js/plugins/code_view.min.js';
 
 const Material: React.FC = () => {
   const { id } = useParams();
@@ -164,6 +171,59 @@ const Material: React.FC = () => {
                   }}
                   tag="textarea"
                 />
+          //       <FroalaEditor
+          //   key={materialData.material.id}
+          //   model={materialData.froalaContent}
+          //   onModelChange={handleFroalaChange}
+          //   config={{
+          //     placeholderText: 'Masukkan teks di sini...',
+          //     imagePaste: true,
+          //     imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+          //     toolbarButtons: [
+          //       ['bold', 'italic', 'underline', 'strikeThrough', 'clearFormatting'],
+          //       ['formatOL', 'formatUL', 'outdent', 'indent'],
+          //       ['insertLink', 'insertImage', 'insertVideo', 'insertTable'],
+          //       ['undo', 'redo', 'fullscreen', 'codeView'],
+          //     ],
+          //     fontSize: [
+          //       '8',
+          //       '10',
+          //       '12',
+          //       '14',
+          //       '16',
+          //       '18',
+          //       '24',
+          //       '30',
+          //       '36',
+          //       '48',
+          //       '60',
+          //       '72',
+          //     ],
+          //     lists: true,
+          //     events: {
+          //       'image.beforeUpload': function (images: File[]) {
+          //         const editor: any = this;
+          //         const reader = new FileReader();
+          //         reader.onload = (e: ProgressEvent<FileReader>) => {
+          //           if (e.target?.result) {
+          //             editor.image.insert(
+          //               e.target.result as string,
+          //               null,
+          //               null,
+          //               null,
+          //               null,
+          //               null,
+          //               editor.image.get()
+          //             );
+          //           }
+          //         };
+          //         reader.readAsDataURL(images[0]);
+          //         return false;
+          //       },
+          //     },
+          //   }}
+          //   tag="textarea"
+          // />
               )
             )}
 
