@@ -54,7 +54,7 @@ const Trade: React.FC = () => {
     setTitle('');
     setTradeId(0);
     setDescription('');
-    setBadgeType('BEGINNER')
+    setBadgeType('BEGINNER');
     setImageFile(null);
     setImagePreview(null);
     setOldImageUrl(null);
@@ -70,7 +70,7 @@ const Trade: React.FC = () => {
     setOldImageUrl(data.image);
     setImagePreview(data.image);
     setIsEditModalOpen(true);
-  }
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -80,7 +80,7 @@ const Trade: React.FC = () => {
     } else {
       setImageFile(null);
       setImagePreview(null); // Menghapus preview jika tidak ada file
-    } 
+    }
   };
 
   const handleAddTrade = async () => {
@@ -150,7 +150,7 @@ const Trade: React.FC = () => {
           return;
         }
       }
- 
+
       const fileName = `${Date.now()}-${imageFile.name}`;
       const filePath = `trade/${fileName}`;
 
@@ -178,11 +178,11 @@ const Trade: React.FC = () => {
       // type: type,
       // courseId: courseId,
       // chapterId: chapterId,
-      // image: imageUrl || undefined, 
+      // image: imageUrl || undefined,
       title: title !== '' ? title : undefined,
       description: description !== '' ? description : undefined,
       requiredBadgeType: badgeType !== '' ? badgeType : undefined,
-      image: imageUrl || undefined, 
+      image: imageUrl || undefined,
     };
 
     try {
@@ -207,9 +207,12 @@ const Trade: React.FC = () => {
           const { error: deleteStorageError } = await supabase.storage
             .from('assignment')
             .remove([oldFilePath]);
-  
+
           if (deleteStorageError) {
-            console.error('Error deleting image from storage:', deleteStorageError);
+            console.error(
+              'Error deleting image from storage:',
+              deleteStorageError,
+            );
             alert('Failed to delete image from storage.');
             return;
           }
@@ -302,284 +305,285 @@ const Trade: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
-      <style>{selectStyle}</style>
-      <h1 className="text-2xl font-bold pb-5">Trade Management</h1>
-      <hr />
-      <div className="text-end mt-6">
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-        >
-          Add Trade
-        </button>
-      </div>
-      <div className="max-w-full overflow-x-auto ">
-        <DataTable
-          data={data}
-          columns={columns}
-          className="display nowrap w-full"
-          options={
-            {
+    <div>
+      <div className="pb-6 text-xl font-semibold">Trade</div>
+      <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
+        <style>{selectStyle}</style>
+        <h1 className="text-2xl font-bold pb-5">Trade Management</h1>
+        <hr />
+        <div className="text-end mt-6">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
+          >
+            Add Trade
+          </button>
+        </div>
+        <div className="max-w-full overflow-x-auto ">
+          <DataTable
+            data={data}
+            columns={columns}
+            className="display nowrap w-full"
+            options={{
               order: [[3, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
-            }
-          }
-        />
+            }}
+          />
+        </div>
+
+        {isAddModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Add Trade
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Name"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="role"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Type
+                    </label>
+                    <select
+                      name="role"
+                      id="role"
+                      value={badgeType}
+                      className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) =>
+                        setBadgeType(
+                          e.target.value as
+                            | 'BEGINNER'
+                            | 'INTERMEDIATE'
+                            | 'ADVANCE',
+                        )
+                      }
+                    >
+                      <option value="BEGINNER">BEGINNER</option>
+                      <option value="INTERMEDIATE">INTERMEDIATE</option>
+                      <option value="ADVANCE">ADVANCE</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      rows={5}
+                      id="description"
+                      name="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Description"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="image"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Image
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    ) : (
+                      <img
+                        src={PlaceholderImg}
+                        alt="Placeholder"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => handleClearForm()}
+                      className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleAddTrade().then();
+                      }}
+                      className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Add Trade
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Name"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="role"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Type
+                    </label>
+                    <select
+                      name="role"
+                      id="role"
+                      value={badgeType}
+                      className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) =>
+                        setBadgeType(
+                          e.target.value as
+                            | 'BEGINNER'
+                            | 'INTERMEDIATE'
+                            | 'ADVANCE',
+                        )
+                      }
+                    >
+                      <option value="BEGINNER">BEGINNER</option>
+                      <option value="INTERMEDIATE">INTERMEDIATE</option>
+                      <option value="ADVANCE">ADVANCE</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      rows={5}
+                      id="description"
+                      name="description"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Description"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="image"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Image
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    ) : (
+                      <img
+                        src={PlaceholderImg}
+                        alt="Placeholder"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => handleClearForm()}
+                      className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleEditTrade().then();
+                      }}
+                      className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
-          >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Add Trade
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <div>
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Name"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="role"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Type
-                  </label>
-                  <select
-                    name="role"
-                    id="role"
-                    value={badgeType}
-                    className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) =>
-                      setBadgeType(
-                        e.target.value as
-                          | 'BEGINNER'
-                          | 'INTERMEDIATE'
-                          | 'ADVANCE',
-                      )
-                    }
-                  >
-                    <option value="BEGINNER">BEGINNER</option>
-                    <option value="INTERMEDIATE">INTERMEDIATE</option>
-                    <option value="ADVANCE">ADVANCE</option>
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    rows={5}
-                    id="description"
-                    name="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Description"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="image"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Image
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  ) : (
-                    <img
-                      src={PlaceholderImg}
-                      alt="Placeholder"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  )}
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAddTrade().then();
-                    }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-{isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
-          >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Add Trade
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <div>
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Name"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="role"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Type
-                  </label>
-                  <select
-                    name="role"
-                    id="role"
-                    value={badgeType}
-                    className="custom-select relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) =>
-                      setBadgeType(
-                        e.target.value as
-                          | 'BEGINNER'
-                          | 'INTERMEDIATE'
-                          | 'ADVANCE',
-                      )
-                    }
-                  >
-                    <option value="BEGINNER">BEGINNER</option>
-                    <option value="INTERMEDIATE">INTERMEDIATE</option>
-                    <option value="ADVANCE">ADVANCE</option>
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Description
-                  </label>
-                  <textarea
-                    rows={5}
-                    id="description"
-                    name="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Description"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="image"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Image
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  ) : (
-                    <img
-                      src={PlaceholderImg}
-                      alt="Placeholder"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  )}
-                </div>
-
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleEditTrade().then();
-                    }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

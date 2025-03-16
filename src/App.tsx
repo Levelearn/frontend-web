@@ -193,7 +193,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/material/:id"
+                  path="/course/:courseId/material/:id"
                   element={
                     <>
                       <PageTitle title="Material" />
@@ -202,7 +202,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/assessment/:id"
+                  path="/course/:courseId/assessment/:id"
                   element={
                     <>
                       <PageTitle title="Assessment" />
@@ -211,7 +211,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/assignment/:id"
+                  path="/course/:courseId/assignment/:id"
                   element={
                     <>
                       <PageTitle title="Assignment" />
@@ -248,7 +248,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/edit-question/:id/:index"
+                  path="/course/:courseId/assessment/:id/edit-question/:index"
                   element={
                     <>
                       <PageTitle title="Edit Question" />
@@ -262,6 +262,15 @@ function App() {
                     <>
                       <PageTitle title="Trades" />
                       <Trade />
+                    </>
+                  }
+                />
+                <Route
+                  path="/signin"
+                  element={
+                    <>
+                      <PageTitle title="Trades" />
+                      <Alerts />
                     </>
                   }
                 />

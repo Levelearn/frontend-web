@@ -206,70 +206,73 @@ const Course: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-      <h1 className="text-2xl font-bold pb-5">Course Management</h1>
-      <hr />
-      <div className="text-end mt-6">
-        <button // Tombol "Add Course" yang sudah diperbaiki
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-        >
-          Add Course
-        </button>
-      </div>
-      <div className="max-w-full overflow-x-auto ">
-        <DataTable
-          data={data}
-          columns={columns}
-          className="display nowrap w-full"
-        />
-      </div>
-
-      {isAddModalOpen && ( // Add Modal Conditional Rendering
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
+    <div>
+      <div className='pb-6 text-xl font-semibold'>Course</div>
+      <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+        <h1 className="text-2xl font-bold pb-5">Course Management</h1>
+        <hr />
+        <div className="text-end mt-6">
+          <button // Tombol "Add Course" yang sudah diperbaiki
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
           >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Add Course
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <AddCourseModal
-                onClose={handleCloseAddModal}
-                data={addFormData}
-                onChange={handleInputChange}
-                onSubmit={handleAddFormSubmit}
-              />
+            Add Course
+          </button>
+        </div>
+        <div className="max-w-full overflow-x-auto ">
+          <DataTable
+            data={data}
+            columns={columns}
+            className="display nowrap w-full"
+          />
+        </div>
+
+        {isAddModalOpen && ( // Add Modal Conditional Rendering
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Add Course
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <AddCourseModal
+                  onClose={handleCloseAddModal}
+                  data={addFormData}
+                  onChange={handleInputChange}
+                  onSubmit={handleAddFormSubmit}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
-          >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Edit Course
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <EditCourseModal
-                onClose={handleCloseModal}
-                data={editFormData}
-                onChange={handleInputChange}
-                onSubmit={handleEditFormSubmit}
-              />
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Edit Course
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <EditCourseModal
+                  onClose={handleCloseModal}
+                  data={editFormData}
+                  onChange={handleInputChange}
+                  onSubmit={handleEditFormSubmit}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
@@ -339,13 +342,13 @@ const EditCourseModal: React.FC<ModalProps<UpdateCourseDto>> = ({
         <button
           type="button"
           onClick={onClose}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+          className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
         >
           Save
         </button>
@@ -413,13 +416,13 @@ const AddCourseModal: React.FC<ModalProps<AddCourseDto>> = ({
         <button
           type="button"
           onClick={onClose}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+          className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
+          className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
         >
           Save
         </button>

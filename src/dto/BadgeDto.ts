@@ -21,6 +21,6 @@ export interface UpdateBadgeDto {
   name?: string;
   image?: string;
   type?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCE';
-  courseId: number;
-  chapterId: number;
+  courseId?: number;
+  chapterId?: number;
 }

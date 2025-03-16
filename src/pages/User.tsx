@@ -197,6 +197,7 @@ export default function User() {
 
   return (
     <div>
+      <div className='pb-6 text-xl font-semibold'>User</div>
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         <h1 className="text-2xl font-bold pb-5">User Management</h1>
         <hr />
@@ -221,7 +222,7 @@ export default function User() {
       </div>
 
       {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -332,7 +333,7 @@ export default function User() {
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                    className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
                   >
                     Cancel
                   </button>
@@ -340,7 +341,7 @@ export default function User() {
                     onClick={() => {
                       handleAddUser().then();
                     }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
                   >
                     Save
                   </button>
@@ -352,7 +353,7 @@ export default function User() {
       )}
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -463,7 +464,7 @@ export default function User() {
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                    className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
                   >
                     Cancel
                   </button>
@@ -471,7 +472,7 @@ export default function User() {
                     onClick={() => {
                       handleEditUser().then();
                     }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
                   >
                     Save
                   </button>

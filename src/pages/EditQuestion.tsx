@@ -4,7 +4,7 @@ import api from '../api/api';
 import { AssessmentDto, Question } from '../dto/AssessmentDto';
 
 const EditQuestion: React.FC = () => {
-  const { id, index } = useParams<{ id: string; index: string }>();
+  const { courseId, id, index } = useParams();
   const navigate = useNavigate();
   const [question, setQuestion] = useState<Question>({} as Question);
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
@@ -137,12 +137,6 @@ const EditQuestion: React.FC = () => {
                     placeholder="New Option"
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                   />
-                  {/* <button
-                    className="bg-green-500 text-white rounded-md py-1 px-2"
-                    onClick={handleAddOption}
-                  >
-                    Add
-                  </button> */}
                   <button
                     className="py-3.5 px-5 bg-success text-white rounded-md"
                     onClick={handleAddOption}
@@ -196,7 +190,7 @@ const EditQuestion: React.FC = () => {
           </button>
           <button
             className="bg-slate-400 rounded-md py-2 px-4 text-white"
-            onClick={() => navigate(`/assessment/${id}`)}
+            onClick={() => navigate(`/course/${courseId}/assessment/${id}`)}
           >
             Cancel
           </button>

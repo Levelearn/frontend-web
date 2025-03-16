@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import api from '../api/api';
 import {
   AssignmentDto,
@@ -7,11 +7,13 @@ import {
   UpdateAssignmentDto,
 } from '../dto/AssignmentDto';
 import { supabase } from '../api/supabase';
+import { CourseDto } from '../dto/CourseDto';
 
 interface AssignmentProps {}
 
 const Assignment: React.FC<AssignmentProps> = () => {
-  const { id } = useParams<{ id: string }>();
+  const { courseId, id } = useParams();
+  const [dataCourse, setDataCourse] = useState<CourseDto>();
   const [instruction, setInstruction] = useState<string>('');
   const [assignId, setAssignId] = useState<number | undefined>();
   const [fileUrl, setFileUrl] = useState<string>('');
@@ -20,6 +22,14 @@ const Assignment: React.FC<AssignmentProps> = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const fetchCourse = async() => {
+    const responseCourse = await api.get<CourseDto>(`/course/${courseId}`);
+
+    if(responseCourse.data?.id) {
+      setDataCourse(responseCourse.data);
+    }
+  }
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -49,6 +59,7 @@ const Assignment: React.FC<AssignmentProps> = () => {
 
   useEffect(() => {
     if (id) {
+      fetchCourse();
       fetchData();
     }
   }, [id]);
@@ -214,85 +225,100 @@ const Assignment: React.FC<AssignmentProps> = () => {
   };
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
-      <h1 className="text-2xl font-bold pb-5">Material Management</h1>
-      <hr />
+    <div>
+      <div className="pb-6 text-xl font-semibold">
+        <Link to="/course" className="text-blue-500 hover:text-blue-400">
+          Course
+        </Link>
+        {' '}&gt;{' '}
+        <Link
+          to={`/course/${courseId}`}
+          className="text-blue-500 hover:text-blue-400"
+        >
+          {dataCourse?.name}
+        </Link>
+        {' '}&gt; Assignment
+      </div>
+      <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
+        <h1 className="text-2xl font-bold pb-5">Assignment Management</h1>
+        <hr />
 
-      {isLoading && <p>Loading...</p>}
-      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {isLoading && <p>Loading...</p>}
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
 
-      <div className="mt-6">
-        {!assignmentExist && !isEditing ? (
-          <button
-            onClick={handleAddAssignmentClick}
-            className="w-full inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-          >
-            Add Assignment
-          </button>
-        ) : (
-          <div>
+        <div className="mt-6">
+          {!assignmentExist && !isEditing ? (
+            <button
+              onClick={handleAddAssignmentClick}
+              className="w-full inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
+            >
+              Add Assignment
+            </button>
+          ) : (
             <div>
-              <label
-                htmlFor="name"
-                className="mb-3 block text-black dark:text-white"
-              >
-                Instruction
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={instruction}
-                onChange={(e) => setInstruction(e.target.value)}
-                className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-              />
-            </div>
-
-            <div className="mt-4">
-              <label
-                htmlFor="file"
-                className="mb-3 block text-black dark:text-white"
-              >
-                Upload File
-              </label>
-              <input
-                type="file"
-                id="file"
-                onChange={handleFileChange}
-                className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
-              />
-            </div>
-            {fileUrl && (
-              <div className="mt-4">
-                <a
-                  className="text-boxdark-2 hover:text-primary"
-                  href={fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <div>
+                <label
+                  htmlFor="name"
+                  className="mb-3 block text-black dark:text-white"
                 >
-                  View uploaded file
-                </a>
+                  Instruction
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
+                  className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
               </div>
-            )}
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={handleSaveAssignment}
-                className="rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-              >
-                Save
-              </button>
-              {isEditing && (
-                <button
-                  onClick={handleCancelClick}
-                  className="rounded-md px-3 py-2 bg-gray-500 text-center font-medium text-white hover:bg-opacity-90"
+              <div className="mt-4">
+                <label
+                  htmlFor="file"
+                  className="mb-3 block text-black dark:text-white"
                 >
-                  Cancel
-                </button>
+                  Upload File
+                </label>
+                <input
+                  type="file"
+                  id="file"
+                  onChange={handleFileChange}
+                  className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                />
+              </div>
+              {fileUrl && (
+                <div className="mt-4">
+                  <a
+                    className="text-boxdark-2 hover:text-primary"
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View uploaded file
+                  </a>
+                </div>
               )}
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={handleSaveAssignment}
+                  className="rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
+                >
+                  Save
+                </button>
+                {isEditing && (
+                  <button
+                    onClick={handleCancelClick}
+                    className="rounded-md px-3 py-2 bg-gray-500 text-center font-medium text-white hover:bg-opacity-90"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

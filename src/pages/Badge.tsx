@@ -6,6 +6,7 @@ import { CourseDto } from '../dto/CourseDto';
 import { ChapterDto, UpdateChapterDto } from '../dto/ChapterDto';
 import PlaceholderImg from '../images/placeholder-image.png';
 import { supabase } from '../api/supabase';
+import Swal from 'sweetalert2';
 
 const Badge: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -32,8 +33,7 @@ const Badge: React.FC = () => {
     background-position: right 8px center;
     background-size: 30px;
     padding-right: 28px;
-  }
-  `;
+  }`;
 
   const fetchData = async () => {
     try {
@@ -76,7 +76,7 @@ const Badge: React.FC = () => {
     } else {
       setImageFile(null);
       setImagePreview(null); // Menghapus preview jika tidak ada file
-    } 
+    }
   };
 
   useEffect(() => {
@@ -130,6 +130,17 @@ const Badge: React.FC = () => {
     const filePath = `badge/${chapterId}/${fileName}`;
 
     try {
+      const uploadBadgeData: AddBadgeDto = {
+        name: name,
+        type: type,
+        courseId: courseId,
+        chapterId: chapterId,
+        image: '',
+      };
+
+      const response = await api.post('/badge', uploadBadgeData);
+
+      // SQL berhasil, lanjutkan dengan upload gambar
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('assignment')
         .upload(filePath, imageFile);
@@ -140,43 +151,71 @@ const Badge: React.FC = () => {
         } else {
           console.error('Unknown error uploading image:', uploadError);
         }
-        alert('Failed to upload image.');
+        handleClearForm();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to upload image',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        await api.delete(`/badge/${response.data.badge.id}`);
         return;
       }
 
       const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
-      const uploadBadgeData: AddBadgeDto = {
-        name: name,
-        type: type,
-        courseId: courseId,
-        chapterId: chapterId,
+      // Update data badge dengan URL gambar
+      const updateBadgeData: UpdateBadgeDto = {
         image: imageUrl,
       };
 
-      const response = await api.post<AddBadgeDto>('/badge', uploadBadgeData);
-      console.log(response.data);
+      await api.put<UpdateBadgeDto>(
+        `/badge/${response.data.badge.id}`,
+        updateBadgeData,
+      );
 
       let checkpoint = 0;
 
-      if(type === 'BEGINNER') {
+      if (type === 'BEGINNER') {
         checkpoint = 1;
-      } else if(type === 'INTERMEDIATE') {
+      } else if (type === 'INTERMEDIATE') {
         checkpoint = 2;
-      } else if(type === 'ADVANCE') {
+      } else if (type === 'ADVANCE') {
         checkpoint = 3;
       }
 
       const uploadChapterData: UpdateChapterDto = {
         isCheckpoint: checkpoint,
-      }
+      };
 
-      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
+      const responseChapter = await api.put<UpdateChapterDto>(
+        `/chapter/${chapterId}`,
+        uploadChapterData,
+      );
       console.log(responseChapter.data);
 
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Badge added successfully.',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (err) {
+      handleClearForm();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add badge',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error while adding badge: ', err);
     }
   };
@@ -200,12 +239,20 @@ const Badge: React.FC = () => {
             }
           }
         } catch (deleteErr) {
+          handleClearForm();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete old image',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           console.error('Error deleting old image:', deleteErr);
-          alert('Failed to delete old image.');
           return;
         }
       }
- 
+
       const fileName = `${Date.now()}-${imageFile.name}`;
       const filePath = `badge/${chapterId}/${fileName}`;
 
@@ -215,15 +262,31 @@ const Badge: React.FC = () => {
           .upload(filePath, imageFile);
 
         if (uploadError) {
+          handleClearForm();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to upload new image',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           console.error('Error uploading new image:', uploadError);
-          alert('Failed to upload new image.');
           return;
         }
 
         imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
       } catch (uploadErr) {
+        handleClearForm();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to upload new image',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
         console.error('Error uploading new image:', uploadErr);
-        alert('Failed to upload new image.');
         return;
       }
     }
@@ -233,7 +296,7 @@ const Badge: React.FC = () => {
       type: type,
       courseId: courseId,
       chapterId: chapterId,
-      image: imageUrl || undefined, // Gunakan URL gambar baru atau lama
+      image: imageUrl || undefined,
     };
 
     try {
@@ -245,74 +308,104 @@ const Badge: React.FC = () => {
 
       let checkpoint = 0;
 
-      if(type === 'BEGINNER') {
+      if (type === 'BEGINNER') {
         checkpoint = 1;
-      } else if(type === 'INTERMEDIATE') {
+      } else if (type === 'INTERMEDIATE') {
         checkpoint = 2;
-      } else if(type === 'ADVANCE') {
+      } else if (type === 'ADVANCE') {
         checkpoint = 3;
       }
 
       const uploadChapterData: UpdateChapterDto = {
         isCheckpoint: checkpoint,
-      }
+      };
 
-      const responseChapter = await api.put<UpdateChapterDto>(`/chapter/${chapterId}`, uploadChapterData);
+      const responseChapter = await api.put<UpdateChapterDto>(
+        `/chapter/${chapterId}`,
+        uploadChapterData,
+      );
       console.log(responseChapter.data);
 
-
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Badge updated successfully.',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (err) {
+      handleClearForm();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update badge',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error while updating badge: ', err);
     }
   };
-  // const handleEditBadge = async () => {
-  //   const uploadData: UpdateBadgeDto = {
-  //     name: name !== '' ? name : undefined,
-  //     type: type,
-  //     courseId: courseId,
-  //     chapterId: chapterId,
-  //   };
-
-  //   try {
-  //     const response = await api.put<UpdateBadgeDto>(
-  //       `/badge/${badgeId}`,
-  //       uploadData,
-  //     );
-  //     console.log(response.data);
-
-  //     handleClearForm();
-  //     fetchData();
-  //   } catch (err) {
-  //     console.error('Error while updating badge: ', err);
-  //   }
-  // };
 
   const handleDeleteBadge = async (id: number, imageUrl?: string) => {
-    try {
-      if (imageUrl) {
-        const oldFilePath = imageUrl.split('/assignment/')[1];
-        if (oldFilePath) {
-          const { error: deleteStorageError } = await supabase.storage
-            .from('assignment')
-            .remove([oldFilePath]);
-  
-          if (deleteStorageError) {
-            console.error('Error deleting image from storage:', deleteStorageError);
-            alert('Failed to delete image from storage.');
-            return;
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          if (imageUrl) {
+            const oldFilePath = imageUrl.split('/assignment/')[1];
+            if (oldFilePath) {
+              const { error: deleteStorageError } = await supabase.storage
+                .from('assignment')
+                .remove([oldFilePath]);
+
+              if (deleteStorageError) {
+                handleClearForm();
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to delete image',
+                  timer: 1500,
+                  timerProgressBar: true,
+                  showConfirmButton: false,
+                });
+                console.error(
+                  'Error deleting image from storage:',
+                  deleteStorageError,
+                );
+                return;
+              }
+            }
           }
+
+          const response = await api.delete(`/badge/${id}`);
+          console.log(response.data);
+
+          fetchData();
+        } catch (err) {
+          handleClearForm();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to upload new image',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          console.error('Error while deleting badge: ', err);
         }
       }
-
-      const response = await api.delete(`/badge/${id}`);
-      console.log(response.data);
-
-      fetchData();
-    } catch (err) {
-      console.error('Error while deleting badge: ', err);
-    }
+    });
   };
 
   const columns = [
@@ -391,340 +484,343 @@ const Badge: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
-      <style>{selectStyle}</style>
-      <h1 className="text-2xl font-bold pb-5">Badge Management</h1>
-      <hr />
-      <div className="text-end mt-6">
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
-        >
-          Add Badge
-        </button>
-      </div>
-      <div className="max-w-full overflow-x-auto ">
-        <DataTable
-          data={data}
-          columns={columns}
-          className="display nowrap w-full"
-          options={{
-            order: [[5, 'desc']], // Urutkan berdasarkan kolom ke-5 (createdAt) secara descending
-          }}
-        />
-      </div>
-
-      {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
+    <div>
+      <div className="pb-6 text-xl font-semibold">Badge</div>
+      <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
+        <style>{selectStyle}</style>
+        <h1 className="text-2xl font-bold pb-5">Badge Management</h1>
+        <hr />
+        <div className="text-end mt-6">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
           >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Add Badge
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <div>
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Name"
-                  />
-                </div>
+            Add Badge
+          </button>
+        </div>
+        <div className="max-w-full overflow-x-auto ">
+          <DataTable
+            data={data}
+            columns={columns}
+            className="display nowrap w-full"
+            options={{
+              order: [[5, 'desc']],
+            }}
+          />
+        </div>
 
-                <div className="mb-4">
-                  <label
-                    htmlFor="role"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Type
-                  </label>
-                  <select
-                    name="role"
-                    id="role"
-                    value={type}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) =>
-                      setType(
-                        e.target.value as
-                          | 'BEGINNER'
-                          | 'INTERMEDIATE'
-                          | 'ADVANCE',
-                      )
-                    }
-                  >
-                    <option value="BEGINNER">BEGINNER</option>
-                    <option value="INTERMEDIATE">INTERMEDIATE</option>
-                    <option value="ADVANCE">ADVANCE</option>
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="course"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Course
-                  </label>
-                  <select
-                    name="course"
-                    id="course"
-                    value={courseId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => {
-                      setCourseId(Number(e.target.value));
-                      setChapter([]);
-                    }}
-                  >
-                    <option value={undefined}>Pilih Course</option>
-                    {course.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="chapter"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Chapter
-                  </label>
-                  <select
-                    name="chapter"
-                    id="chapter"
-                    value={chapterId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => setChapterId(Number(e.target.value))}
-                  >
-                    <option value={undefined}>Pilih Chapter</option>
-                    {chapter.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="image"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Image
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
+        {isAddModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Add Badge
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Name"
                     />
-                  ) : (
-                    <img
-                      src={PlaceholderImg}
-                      alt="Placeholder"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  )}
-                </div>
+                  </div>
 
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAddBadge().then();
-                    }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="role"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Type
+                    </label>
+                    <select
+                      name="role"
+                      id="role"
+                      value={type}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) =>
+                        setType(
+                          e.target.value as
+                            | 'BEGINNER'
+                            | 'INTERMEDIATE'
+                            | 'ADVANCE',
+                        )
+                      }
+                    >
+                      <option value="BEGINNER">BEGINNER</option>
+                      <option value="INTERMEDIATE">INTERMEDIATE</option>
+                      <option value="ADVANCE">ADVANCE</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="course"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Course
+                    </label>
+                    <select
+                      name="course"
+                      id="course"
+                      value={courseId}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) => {
+                        setCourseId(Number(e.target.value));
+                        setChapter([]);
+                      }}
+                    >
+                      <option value={undefined}>Pilih Course</option>
+                      {course.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="chapter"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Chapter
+                    </label>
+                    <select
+                      name="chapter"
+                      id="chapter"
+                      value={chapterId}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) => setChapterId(Number(e.target.value))}
+                    >
+                      <option value={undefined}>Pilih Chapter</option>
+                      {chapter.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="image"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Image
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    ) : (
+                      <img
+                        src={PlaceholderImg}
+                        alt="Placeholder"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => handleClearForm()}
+                      className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleAddBadge().then();
+                      }}
+                      className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {isEditModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
-          <div
-            className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
-            style={{ width: '800px', maxWidth: '90%' }}
-          >
-            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
-              <h3 className="font-medium text-black dark:text-white">
-                Edit Badge
-              </h3>
-            </div>
-            <div className="flex flex-col gap-5.5 p-6.5">
-              <div>
-                <div className="mb-4">
-                  <label
-                    htmlFor="name"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    placeholder="Input Name"
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="role"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Type
-                  </label>
-                  <select
-                    name="role"
-                    value={type}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) =>
-                      setType(
-                        e.target.value as
-                          | 'BEGINNER'
-                          | 'INTERMEDIATE'
-                          | 'ADVANCE',
-                      )
-                    }
-                  >
-                    <option value="BEGINNER">BEGINNER</option>
-                    <option value="INTERMEDIATE">INTERMEDIATE</option>
-                    <option value="ADVANCE">ADVANCE</option>
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="course"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Course
-                  </label>
-                  <select
-                    name="course"
-                    value={courseId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => {
-                      setCourseId(Number(e.target.value));
-                      setChapter([]);
-                    }}
-                  >
-                    <option value={undefined}>Pilih Course</option>
-                    {course.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="chapter"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Chapter
-                  </label>
-                  <select
-                    name="chapter"
-                    value={chapterId}
-                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
-                    onChange={(e) => setChapterId(Number(e.target.value))}
-                  >
-                    <option value={undefined}>Pilih Chapter</option>
-                    {chapter.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="mb-4">
-                  <label
-                    htmlFor="image"
-                    className="mb-3 block text-black dark:text-white"
-                  >
-                    Image
-                  </label>
-                  <input
-                    type="file"
-                    id="image"
-                    accept="image/*"
-                    className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
+        {isEditModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+            <div
+              className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+              style={{ width: '800px', maxWidth: '90%' }}
+            >
+              <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+                <h3 className="font-medium text-black dark:text-white">
+                  Edit Badge
+                </h3>
+              </div>
+              <div className="flex flex-col gap-5.5 p-6.5">
+                <div>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="name"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      placeholder="Input Name"
                     />
-                  ) : (
-                    <img
-                      src={PlaceholderImg}
-                      alt="Placeholder"
-                      className="border w-full h-60 object-cover rounded-lg mt-5"
-                    />
-                  )}
-                </div>
+                  </div>
 
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleEditBadge().then();
-                    }}
-                    className="bg-primary hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
-                  >
-                    Save
-                  </button>
+                  <div className="mb-4">
+                    <label
+                      htmlFor="role"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Type
+                    </label>
+                    <select
+                      name="role"
+                      value={type}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) =>
+                        setType(
+                          e.target.value as
+                            | 'BEGINNER'
+                            | 'INTERMEDIATE'
+                            | 'ADVANCE',
+                        )
+                      }
+                    >
+                      <option value="BEGINNER">BEGINNER</option>
+                      <option value="INTERMEDIATE">INTERMEDIATE</option>
+                      <option value="ADVANCE">ADVANCE</option>
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="course"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Course
+                    </label>
+                    <select
+                      name="course"
+                      value={courseId}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) => {
+                        setCourseId(Number(e.target.value));
+                        setChapter([]);
+                      }}
+                    >
+                      <option value={undefined}>Pilih Course</option>
+                      {course.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="chapter"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Chapter
+                    </label>
+                    <select
+                      name="chapter"
+                      value={chapterId}
+                      className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                      onChange={(e) => setChapterId(Number(e.target.value))}
+                    >
+                      <option value={undefined}>Pilih Chapter</option>
+                      {chapter.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="image"
+                      className="mb-3 block text-black dark:text-white"
+                    >
+                      Image
+                    </label>
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      className="w-full rounded-md border border-stroke p-3 outline-none transition file:mr-4 file:rounded file:border-[0.5px] file:border-stroke file:bg-[#EEEEEE] file:py-1 file:px-2.5 file:text-sm focus:border-primary file:focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-strokedark dark:file:bg-white/30 dark:file:text-white"
+                      onChange={handleImageChange}
+                    />
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    ) : (
+                      <img
+                        src={PlaceholderImg}
+                        alt="Placeholder"
+                        className="border w-full h-60 object-cover rounded-lg mt-5"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={() => handleClearForm()}
+                      className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleEditBadge().then();
+                      }}
+                      className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
+                    >
+                      Save
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

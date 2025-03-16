@@ -2,32 +2,48 @@ import React, { useEffect, useState } from 'react';
 //@ts-ignore
 import { UserDto } from '../dto/UserDto';
 import api from '../api/api';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import DataTable from 'datatables.net-react';
 import { UsercourseDto } from '../dto/UsercourseDto';
+import { CourseDto } from '../dto/CourseDto';
 
 const UserCourse: React.FC = () => {
   const { id } = useParams();
+  const [dataCourse, setDataCourse] = useState<CourseDto>();
   const [data, setData] = useState<UserDto[]>([]);
   const [studentCourse, setStudentCourse] = useState<UserDto[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>();
   const [userId, setUserId] = useState<number>(0);
 
-  const fetchData = async () => {
+  const fetchCourse = async () => {
+    const courseResponse = await api.get<CourseDto>(`/course/${id}`);
+
+    if(courseResponse.data?.id) {
+      setDataCourse(courseResponse.data);
+    }
+  }
+
+  const fetchStudent = async() => {
     try {
       const userResponse = await api.get<UserDto[]>('/user?role=STUDENT');
-      const studentCourseResponse = await api.get<UserDto[]>(`/course/${id}/users`);
-      console.log(studentCourseResponse.data);
-      // console.log(id);
-
-      setStudentCourse(studentCourseResponse.data);
       setData(userResponse.data);
+    } catch(err) {
+      console.log(err)
+    }
+  }
+
+  const fetchData = async () => {
+    try {
+      const studentCourseResponse = await api.get<UserDto[]>(`/course/${id}/users`);
+      setStudentCourse(studentCourseResponse.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
 
   useEffect(() => {
+    fetchStudent();
+    fetchCourse();
     fetchData();
   }, []);
 
@@ -116,6 +132,10 @@ const UserCourse: React.FC = () => {
 
   return (
     <div>
+      <div className='pb-6 text-xl font-semibold'>
+        <Link to="/course" className='text-blue-500 hover:text-blue-400'>Course</Link>
+        {' '}&gt; Students in {dataCourse?.name}
+      </div>
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         <h1 className="text-2xl font-bold pb-5">Student Course</h1>
         <hr />
@@ -137,7 +157,7 @@ const UserCourse: React.FC = () => {
       </div>
 
       {isAddModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75">
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
           <div
             className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
             style={{ width: '800px', maxWidth: '90%' }}
@@ -175,7 +195,7 @@ const UserCourse: React.FC = () => {
                 <div className="flex justify-end mt-6">
                   <button
                     onClick={() => handleClearForm()}
-                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                    className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
                   >
                     Cancel
                   </button>
@@ -183,7 +203,7 @@ const UserCourse: React.FC = () => {
                     onClick={() => {
                       handleAddUserCourse().then();
                     }}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
                   >
                     Save
                   </button>
