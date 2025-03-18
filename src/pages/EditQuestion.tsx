@@ -10,6 +10,16 @@ const EditQuestion: React.FC = () => {
   const [allQuestions, setAllQuestions] = useState<Question[]>([]);
   const [newOption, setNewOption] = useState<string>('');
 
+  const selectStyle = `
+  .custom-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Cpath d='M8 10l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 30px;
+    padding-right: 28px;
+  }`;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -85,6 +95,7 @@ const EditQuestion: React.FC = () => {
 
   return (
     <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
+      <style>{selectStyle}</style>
       <h1 className="text-2xl font-bold pb-5">Question Management</h1>
       <hr />
       <div className="p-4 mt-4">
@@ -159,7 +170,7 @@ const EditQuestion: React.FC = () => {
           {question.type === 'MC' && question.options && (
             <select
               name="answer"
-              className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+               className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
               value={question.answer}
               onChange={handleChange}
             >
@@ -183,13 +194,13 @@ const EditQuestion: React.FC = () => {
         </div>
         <div className="flex gap-2 mt-4">
           <button
-            className="bg-primary rounded-md py-2 px-4 text-white"
+            className="bg-primary hover:bg-opacity-90 font-medium rounded-md py-2 px-4 text-white"
             onClick={handleSave}
           >
             Save
           </button>
           <button
-            className="bg-slate-400 rounded-md py-2 px-4 text-white"
+            className="bg-slate-400 hover:bg-opacity-90 font-medium rounded-md py-2 px-4 text-white"
             onClick={() => navigate(`/course/${courseId}/assessment/${id}`)}
           >
             Cancel

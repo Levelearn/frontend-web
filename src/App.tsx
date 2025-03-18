@@ -28,6 +28,8 @@ import EditQuestion from './pages/EditQuestion';
 import Badge from './pages/Badge';
 import Login from './pages/Login';
 import Trade from './pages/Trade';
+import AssessmentResponse from './pages/AssessmentResponse';
+import DetailResponse from './pages/DetailResponse';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -253,6 +255,24 @@ function App() {
                     <>
                       <PageTitle title="Edit Question" />
                       <EditQuestion />
+                    </>
+                  }
+                />
+                <Route
+                  path="/course/:courseId/assessment/:assessId/response"
+                  element={
+                    <>
+                      <PageTitle title="Assessment Response" />
+                      <AssessmentResponse />
+                    </>
+                  }
+                />
+                <Route
+                  path="/course/:courseId/assessment/:assessId/response/:userId"
+                  element={
+                    <>
+                      <PageTitle title="Assessment Detail" />
+                      <DetailResponse />
                     </>
                   }
                 />

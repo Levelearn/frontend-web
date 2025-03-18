@@ -22,6 +22,16 @@ const Assessment: React.FC = () => {
   const [newAnswerText, setNewAnswerText] = useState<string>('');
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
+  const selectStyle = `
+  .custom-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Cpath d='M8 10l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 30px;
+    padding-right: 28px;
+  }`;
+
   const fetchCourse = async () => {
     const responseCourse = await api.get<CourseDto>(`/course/${courseId}`);
     if (responseCourse.data?.id) {
@@ -87,8 +97,6 @@ const Assessment: React.FC = () => {
       answer: questionType === 'MC' ? newAnswerText : '',
       type: questionType as 'MC' | 'EY',
     };
-    // console.log(JSON.stringify([...questions, newQuestion]));
-    // setQuestions([...questions, newQuestion]);
     try {
       await api.put(`/assessment/${assessId}`, {
         questions: JSON.stringify([...questions, newQuestion]),
@@ -110,7 +118,7 @@ const Assessment: React.FC = () => {
         questions: JSON.stringify(updatedQuestions),
       });
       setQuestions(updatedQuestions);
-      fetchData(); 
+      fetchData();
     } catch (error) {
       console.error('Error deleting question:', error);
       setError('Gagal menghapus pertanyaan. Silakan coba lagi.');
@@ -168,6 +176,7 @@ const Assessment: React.FC = () => {
 
   return (
     <div>
+      <style>{selectStyle}</style>
       <div className="pb-6 text-xl font-semibold">
         <Link to="/course" className="text-blue-500 hover:text-blue-400">
           Course
@@ -190,7 +199,7 @@ const Assessment: React.FC = () => {
             <div className="p-4 border">
               <div className="flex justify-between">
                 <strong className="grid content-center">User Response</strong>
-                <button className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md">
+                <button onClick={() => navigate(`/course/${courseId}/assessment/${id}/response`)} className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 192 512"
@@ -258,14 +267,17 @@ const Assessment: React.FC = () => {
                         </button>
 
                         {/* button hapus */}
-                        <button onClick={() => handleDeleteQuestion(index)} className="bg-danger hover:bg-opacity-90 px-4 py-2 rounded-md">
+                        <button
+                          onClick={() => handleDeleteQuestion(index)}
+                          className="bg-danger hover:bg-opacity-90 px-4 py-2 rounded-md"
+                        >
                           <svg
                             viewBox="0 0 512 512"
                             width="20"
                             height="20"
                             fill="white"
                           >
-                            <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z"/>
+                            <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0L284.2 0c12.1 0 23.2 6.8 28.6 17.7L320 32l96 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 7.2-14.3zM32 128l384 0 0 320c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-320zm96 64c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16l0 224c0 8.8 7.2 16 16 16s16-7.2 16-16l0-224c0-8.8-7.2-16-16-16z" />
                           </svg>
                         </button>
                       </div>
@@ -306,63 +318,75 @@ const Assessment: React.FC = () => {
             <div className="mt-4">
               <p className="font-semibold mb-2">Make Question</p>
               <div className="border p-4">
-                <div className="mb-2">Type</div>
-                <select
-                  className="w-full border rounded p-2 mb-2"
-                  value={questionType}
-                  onChange={(e) => setQuestionType(e.target.value)}
-                >
-                  <option value="MC">Multiple Choice</option>
-                  <option value="EY">Essay</option>
-                </select>
+                <div className="mb-4">
+                  <div className="mb-2">Type</div>
+                  <select
+                    className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                    value={questionType}
+                    onChange={(e) => setQuestionType(e.target.value)}
+                  >
+                    <option value="MC">Multiple Choice</option>
+                    <option value="EY">Essay</option>
+                  </select>
+                </div>
 
-                <div className="mb-2">Question</div>
-                <input
-                  type="text"
-                  className="w-full border rounded p-2 mb-2"
-                  value={newQuestionText}
-                  onChange={(e) => setNewQuestionText(e.target.value)}
-                  placeholder="Question...?"
-                />
+                <div className="mb-4">
+                  <div className="mb-2">Question</div>
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    value={newQuestionText}
+                    onChange={(e) => setNewQuestionText(e.target.value)}
+                    placeholder="Question...?"
+                  />
+                </div>
                 {questionType === 'MC' ? (
                   <div>
-                    <div className="mb-2">Option</div>
-                    <input
-                      type="text"
-                      className="w-full border rounded p-2"
-                      value={newOptionText}
-                      onChange={(e) => setNewOptionText(e.target.value)}
-                    />
-                    <button
-                      className="py-2 px-4 bg-slate-600 text-white rounded-md mt-2"
-                      onClick={handleAddOption}
-                    >
-                      Save Option
-                    </button>
-                    <div className="mt-2">
+                    <div className="mb-4">
+                      <div className="mb-2">Option</div>
+                      <input
+                        type="text"
+                        className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                        value={newOptionText}
+                        onChange={(e) => setNewOptionText(e.target.value)}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <button
+                        className="py-2 px-4 bg-slate-400 hover:bg-opacity-90 font-medium text-white rounded-md"
+                        onClick={handleAddOption}
+                      >
+                        Save Option
+                      </button>
+                    </div>
+                    <div className="">
                       {currentOptions.map((option, index) => (
-                        <div key={index}>{option}</div>
+                        <div className={index === currentOptions.length - 1 ? 'mb-4' : ''} key={index}>
+                          • {option}
+                        </div>
                       ))}
                     </div>
-                    <div className="mb-2 mt-2">Answer</div>
-                    <select
-                      className="w-full border rounded p-2"
-                      value={newAnswerText}
-                      onChange={(e) => setNewAnswerText(e.target.value)}
-                    >
-                      <option value="">Pilih Jawaban</option>
-                      {currentOptions.map((option, index) => (
-                        <option key={index} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mb-4">
+                      <div className="mb-2">Answer</div>
+                      <select
+                        className="relative z-20 w-full appearance-none rounded-lg border border-stroke bg-transparent py-3 px-5 pr-10 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input custom-select"
+                        value={newAnswerText}
+                        onChange={(e) => setNewAnswerText(e.target.value)}
+                      >
+                        <option value="">Pilih Jawaban</option>
+                        {currentOptions.map((option, index) => (
+                          <option key={index} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 ) : (
-                  <div></div>
+                  <div className="mb-4"></div>
                 )}
                 <button
-                  className="py-2 px-4 bg-primary text-white rounded-md mt-4"
+                  className="py-2 px-4 bg-primary hover:bg-opacity-90 font-medium text-white rounded-md"
                   onClick={handleSaveQuestion}
                 >
                   Save Question

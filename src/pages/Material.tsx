@@ -133,7 +133,7 @@ const Material: React.FC = () => {
           {!materialExists && !isEditing ? (
             <button
               onClick={() => setIsEditing(true)}
-              className="w-full inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-white hover:bg-opacity-90"
+              className="w-full inline-flex items-center font-medium justify-center rounded-md px-3 py-2 bg-primary text-white hover:bg-opacity-90"
             >
               Add Material
             </button>
@@ -258,14 +258,14 @@ const Material: React.FC = () => {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={saveMaterial}
-                  className="rounded-md px-3 py-2 bg-primary text-white hover:bg-opacity-90"
+                  className="rounded-md px-4 py-2 bg-primary text-white font-medium hover:bg-opacity-90"
                 >
                   Save
                 </button>
                 {isEditing && (
                   <button
                     onClick={() => setIsEditing(false)}
-                    className="rounded-md px-3 py-2 bg-gray-500 text-white hover:bg-opacity-90"
+                    className="rounded-md px-4 py-2 bg-gray-500 text-white font-medium hover:bg-opacity-90"
                   >
                     Cancel
                   </button>
