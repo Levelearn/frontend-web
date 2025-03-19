@@ -30,14 +30,14 @@ const CourseDetail: React.FC = () => {
     courseId: Number(id),
   });
 
-  const fetchStudent = async() => {
+  const fetchStudent = async () => {
     try {
       const response = await api.get(`/course/${id}/users`);
       setCountStudent(response.data.length);
-    } catch(err) {
-      console.error(err)
+    } catch (err) {
+      console.error(err);
     }
-  }
+  };
 
   const fetchData = async () => {
     try {
@@ -273,39 +273,53 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div>
-      <div className='pb-6 text-xl font-semibold'>
-        <Link to='/course' className='text-blue-500 hover:text-blue-400'>Course </Link>
+      <div className="pb-6 text-xl font-semibold">
+        <Link to="/course" className="text-blue-500 hover:text-blue-400">
+          Course{' '}
+        </Link>
         &gt; {dataCourse?.name}
       </div>
       <div className="rounded-sm border border-stroke bg-white px-5 py-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-6">
         <h1 className="text-2xl font-bold pb-5">Course Management</h1>
         <hr />
-        <div className="flex flex-col sm:flex-row mt-10">
+        <div className="flex flex-col sm:flex-row mt-10 sm:gap-5">
           <div className="w-full sm:w-1/3">
+          {dataCourse?.image && dataCourse.image !== '' ? (
             <img
-              className="w-full h-auto object-cover rounded-lg"
+              className="w-full h-75 object-cover rounded-lg border"
+              src={dataCourse.image}
+              alt="gambar"
+            />
+          ) : (
+            <img
+              className="w-full h-auto object-cover rounded-lg border"
               src={PlaceholderImg}
               alt="gambar"
             />
+          )}
           </div>
-          <div className="w-full sm:w-2/3 sm:pl-4">
-            <div className="mb-2">
-              <table>
+          <div className="w-full mt-4 sm:w-2/3 sm:mt-0">
+            <div className="mb-2 text-lg font-semibold">
+              <table width="100%">
                 <tr>
-                  <td className="w-50">Name</td>
-                  <td className="w-50">{dataCourse?.name}</td>
+                  <td width="10%">Name</td>
+                  <td width="50%">{dataCourse?.name}</td>
                 </tr>
                 <tr>
-                  <td className="w-50">Code</td>
-                  <td className="w-50">{dataCourse?.code}</td>
+                  <td>Code</td>
+                  <td>{dataCourse?.code}</td>
                 </tr>
                 <tr>
-                  <td className="w-50">Students</td>
-                  <td className="w-50">{countStudent} Students</td>
+                  <td valign="top">Description</td>
+                  <td valign="top">{dataCourse?.description}</td>
                 </tr>
                 <tr>
-                  <td className="w-50">Chapters</td>
-                  <td className="w-50">{countChapter} Chapters</td>
+                  <td>Students</td>
+                  <td>{countStudent} Students</td>
+                </tr>
+                <tr>
+                  <td>Chapters</td>
+                  <td>{countChapter} Chapters</td>
                 </tr>
               </table>
             </div>

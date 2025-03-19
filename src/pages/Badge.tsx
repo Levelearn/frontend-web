@@ -397,7 +397,7 @@ const Badge: React.FC = () => {
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to upload new image',
+            text: 'Failed to delete badge',
             timer: 1500,
             timerProgressBar: true,
             showConfirmButton: false,

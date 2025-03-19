@@ -4,7 +4,8 @@ import { AddUserDto, EditUserDto, UserDto } from '../dto/UserDto';
 import api from '../api/api';
 import DataTable from 'datatables.net-react';
 import DT from 'datatables.net-dt';
- 
+import Swal from 'sweetalert2';
+
 DataTable.use(DT);
 
 export default function User() {
@@ -20,6 +21,12 @@ export default function User() {
   const [instructor_id, setInstructor_id] = useState<string>('');
   const [userId, setUserId] = useState<number>();
 
+  const style = `
+    .swal2-container {
+      z-index: 10000;
+    }
+  `;
+
   const fetchData = async () => {
     try {
       const response = await api.get<UserDto[]>('/user');
@@ -33,7 +40,54 @@ export default function User() {
     fetchData();
   }, []);
 
+  const isFormValid = () => {
+
+    if(role === 'INSTRUCTOR') {
+      if (!name || !username || !instructor_id) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Warning',
+          text: 'Please fill in all required fields (Name, Username, Instructor ID).',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return false;
+      }
+    } else if(role === 'STUDENT') {
+      if (!name || !username || !student_id) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Warning',
+          text: 'Please fill in all required fields (Name, Username, Student ID).',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return false;
+      }
+    } else if(role === 'ADMIN') {
+      if (!name || !username) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Warning',
+          text: 'Please fill in all required fields (Name, Username).',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return false;
+      }
+    }
+      
+      return true;
+    };
+
   const handleAddUser = async () => {
+    if (!isFormValid()) {
+      return;
+    }
+
     const uploadData: AddUserDto = {
       name: name,
       username: username,
@@ -48,10 +102,26 @@ export default function User() {
       console.log(response.data);
 
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'User added successfully.',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (error) {
       console.error('Error while adding user: ', error);
       setIsAddModalOpen(false);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add user',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   };
 
@@ -71,36 +141,62 @@ export default function User() {
     const studentId = role === 'STUDENT' ? student_id : '';
 
     const uploadData: EditUserDto = {
-      name: name,
-      username: username,
+      name: name !== '' ? name : undefined,
+      username: username !== '' ? username : undefined,
       role: role,
-      instructorId: instructorId,
-      studentId: studentId,
+      instructorId: instructorId !== '' ? instructorId : undefined,
+      studentId: studentId !== '' ? studentId : undefined,
     };
 
     try {
-      const response = await api.put<EditUserDto>(
+      await api.put<EditUserDto>(
         `/user/${userId}`,
         uploadData,
       );
-      console.log(response.data);
-
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'User updated successfully.',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (error) {
       console.error('Error while updating user: ', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update user',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
     }
   };
 
   const handleDeleteUser = async (id: number) => {
-    try {
-      const response = await api.delete(`/user/${id}`);
-      console.log(response.data);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await api.delete(`/user/${id}`);
+          console.log(response.data);
 
-      fetchData();
-    } catch (error) {
-      console.error('Error while deleting user: ', error);
-    }
+          fetchData();
+        } catch (error) {
+          console.error('Error while deleting user: ', error);
+        }
+      }
+    });
   };
 
   const handleClearForm = () => {
@@ -197,7 +293,8 @@ export default function User() {
 
   return (
     <div>
-      <div className='pb-6 text-xl font-semibold'>User</div>
+      <style>{style}</style>
+      <div className="pb-6 text-xl font-semibold">User</div>
       <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
         <h1 className="text-2xl font-bold pb-5">User Management</h1>
         <hr />
@@ -245,6 +342,7 @@ export default function User() {
                     type="text"
                     id="name"
                     name="name"
+                    placeholder="Input Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -262,6 +360,7 @@ export default function User() {
                     type="text"
                     id="username"
                     name="username"
+                    placeholder="Input Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -304,6 +403,7 @@ export default function User() {
                       type="text"
                       id="student-id"
                       name="studentId"
+                      placeholder="Input Student ID"
                       value={student_id}
                       onChange={(e) => setStudent_id(e.target.value)}
                       className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -323,6 +423,7 @@ export default function User() {
                       type="text"
                       id="instructor-id"
                       name="instructorId"
+                      placeholder="Input Instructor ID"
                       value={instructor_id}
                       onChange={(e) => setInstructor_id(e.target.value)}
                       className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -376,6 +477,7 @@ export default function User() {
                     type="text"
                     id="name"
                     name="name"
+                    placeholder="Input Name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -393,6 +495,7 @@ export default function User() {
                     type="text"
                     id="username"
                     name="username"
+                    placeholder="Input Username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -435,6 +538,7 @@ export default function User() {
                       type="text"
                       id="student-id"
                       name="studentId"
+                      placeholder="Input Student ID"
                       value={student_id}
                       onChange={(e) => setStudent_id(e.target.value)}
                       className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
@@ -454,6 +558,7 @@ export default function User() {
                       type="text"
                       id="instructor-id"
                       name="instructorId"
+                      placeholder="Input Instructor ID"
                       value={instructor_id}
                       onChange={(e) => setInstructor_id(e.target.value)}
                       className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"

@@ -1,17 +1,23 @@
 export interface CourseDto {
-  id: number,
-  code: string,
-  name: string,
-  createdAt: string,
-  updatedAt: string,
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  image: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AddCourseDto {
-  code: string,
-  name: string,
+  name: string;
+  code: string;
+  description: string;
+  image: string;
 }
 
 export interface UpdateCourseDto {
-  code? : string;
-  name? : string;
+  name?: string;
+  code?: string;
+  description?: string;
+  image?: string;
 }
