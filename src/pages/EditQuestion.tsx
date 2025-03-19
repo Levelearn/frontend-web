@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/api';
 import { AssessmentDto, Question } from '../dto/AssessmentDto';
+import Swal from 'sweetalert2';
 
 const EditQuestion: React.FC = () => {
   const { courseId, id, index } = useParams();
@@ -50,9 +51,25 @@ const EditQuestion: React.FC = () => {
           chapterId: Number(id),
           questions: JSON.stringify(updatedQuestions),
         });
-        navigate(`/assessment/${id}`);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Question updated successfully',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        navigate(`/course/${courseId}/assessment/${id}`);
       }
     } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update question',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error updating question:', err);
     }
   };

@@ -14,6 +14,7 @@ import 'froala-editor/js/plugins/font_size.min.js';
 import 'froala-editor/js/plugins/code_beautifier.min.js';
 import 'froala-editor/js/plugins/code_view.min.js';
 import { CourseDto } from '../dto/CourseDto';
+import Swal from 'sweetalert2';
 
 const Material: React.FC = () => {
   const { courseId, id } = useParams();
@@ -27,18 +28,17 @@ const Material: React.FC = () => {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [materialExists, setMaterialExists] = useState(false);
-  // const [isLoading, setIsLoading] = useState(true);
-  const [froalaLoading, setFroalaLoading] = useState(true); // Loading state for FroalaEditor
+  const [froalaLoading, setFroalaLoading] = useState(true);
   const [froalaRender, setFroalaRender] = useState(false);
 
-  const fetchCourse = async() => {
+  const fetchCourse = async () => {
     const responseCourse = await api.get<CourseDto>(`/course/${courseId}`);
     console.log(responseCourse.data);
 
     if (responseCourse.data?.id) {
       setDataCourse(responseCourse.data);
     }
-  }
+  };
 
   const fetchData = useCallback(async () => {
     if (!id) {
@@ -102,9 +102,35 @@ const Material: React.FC = () => {
         ? await api.put(`/material/${materialData.material.id}`, materialToSave)
         : await api.post('/material', materialToSave);
 
+      materialExists
+        ? Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Material updated successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          })
+        : Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Material added successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+
       fetchData();
       setIsEditing(false);
     } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add material',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error saving material:', error);
     }
   }, [id, materialData, materialExists, fetchData]);
@@ -199,59 +225,6 @@ const Material: React.FC = () => {
                     }}
                     tag="textarea"
                   />
-                  //       <FroalaEditor
-                  //   key={materialData.material.id}
-                  //   model={materialData.froalaContent}
-                  //   onModelChange={handleFroalaChange}
-                  //   config={{
-                  //     placeholderText: 'Masukkan teks di sini...',
-                  //     imagePaste: true,
-                  //     imageAllowedTypes: ['jpeg', 'jpg', 'png'],
-                  //     toolbarButtons: [
-                  //       ['bold', 'italic', 'underline', 'strikeThrough', 'clearFormatting'],
-                  //       ['formatOL', 'formatUL', 'outdent', 'indent'],
-                  //       ['insertLink', 'insertImage', 'insertVideo', 'insertTable'],
-                  //       ['undo', 'redo', 'fullscreen', 'codeView'],
-                  //     ],
-                  //     fontSize: [
-                  //       '8',
-                  //       '10',
-                  //       '12',
-                  //       '14',
-                  //       '16',
-                  //       '18',
-                  //       '24',
-                  //       '30',
-                  //       '36',
-                  //       '48',
-                  //       '60',
-                  //       '72',
-                  //     ],
-                  //     lists: true,
-                  //     events: {
-                  //       'image.beforeUpload': function (images: File[]) {
-                  //         const editor: any = this;
-                  //         const reader = new FileReader();
-                  //         reader.onload = (e: ProgressEvent<FileReader>) => {
-                  //           if (e.target?.result) {
-                  //             editor.image.insert(
-                  //               e.target.result as string,
-                  //               null,
-                  //               null,
-                  //               null,
-                  //               null,
-                  //               null,
-                  //               editor.image.get()
-                  //             );
-                  //           }
-                  //         };
-                  //         reader.readAsDataURL(images[0]);
-                  //         return false;
-                  //       },
-                  //     },
-                  //   }}
-                  //   tag="textarea"
-                  // />
                 )
               )}
 

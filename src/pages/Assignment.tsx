@@ -8,6 +8,7 @@ import {
 } from '../dto/AssignmentDto';
 import { supabase } from '../api/supabase';
 import { CourseDto } from '../dto/CourseDto';
+import Swal from 'sweetalert2';
 
 interface AssignmentProps {}
 
@@ -143,9 +144,35 @@ const Assignment: React.FC<AssignmentProps> = () => {
         await api.post(`/assignment`, payload);
       }
 
+      assignmentExist && assignId
+        ? Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Assignment updated successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          })
+        : Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Assignment added successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+
       setIsEditing(false);
       fetchData();
     } catch (error: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add assignment',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error saving assignment:', error);
       setErrorMessage(error.message || 'Failed to save assignment.');
     } finally {
@@ -186,7 +213,14 @@ const Assignment: React.FC<AssignmentProps> = () => {
           <div className="mt-4 p-4 border">
             <div className="flex justify-between">
               <strong className="grid content-center">User Response</strong>
-              <button onClick={() => navigate(`/course/${courseId}/assignment/${assignId}/response`)} className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md">
+              <button
+                onClick={() =>
+                  navigate(
+                    `/course/${courseId}/assignment/${assignId}/response`,
+                  )
+                }
+                className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 192 512"

@@ -388,9 +388,16 @@ const Badge: React.FC = () => {
             }
           }
 
-          const response = await api.delete(`/badge/${id}`);
-          console.log(response.data);
+          await api.delete(`/badge/${id}`);
 
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Badge delete successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           fetchData();
         } catch (err) {
           handleClearForm();

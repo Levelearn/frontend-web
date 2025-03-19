@@ -41,8 +41,7 @@ export default function User() {
   }, []);
 
   const isFormValid = () => {
-
-    if(role === 'INSTRUCTOR') {
+    if (role === 'INSTRUCTOR') {
       if (!name || !username || !instructor_id) {
         Swal.fire({
           icon: 'warning',
@@ -54,7 +53,7 @@ export default function User() {
         });
         return false;
       }
-    } else if(role === 'STUDENT') {
+    } else if (role === 'STUDENT') {
       if (!name || !username || !student_id) {
         Swal.fire({
           icon: 'warning',
@@ -66,7 +65,7 @@ export default function User() {
         });
         return false;
       }
-    } else if(role === 'ADMIN') {
+    } else if (role === 'ADMIN') {
       if (!name || !username) {
         Swal.fire({
           icon: 'warning',
@@ -79,9 +78,9 @@ export default function User() {
         return false;
       }
     }
-      
-      return true;
-    };
+
+    return true;
+  };
 
   const handleAddUser = async () => {
     if (!isFormValid()) {
@@ -149,10 +148,7 @@ export default function User() {
     };
 
     try {
-      await api.put<EditUserDto>(
-        `/user/${userId}`,
-        uploadData,
-      );
+      await api.put<EditUserDto>(`/user/${userId}`, uploadData);
       handleClearForm();
       Swal.fire({
         icon: 'success',
@@ -188,9 +184,16 @@ export default function User() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await api.delete(`/user/${id}`);
-          console.log(response.data);
+          await api.delete(`/user/${id}`);
 
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'User delete successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           fetchData();
         } catch (error) {
           console.error('Error while deleting user: ', error);

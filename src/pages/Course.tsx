@@ -153,7 +153,7 @@ const Course: React.FC = () => {
       Swal.fire({
         icon: 'success',
         title: 'Success',
-        text: 'Course added successfully.',
+        text: 'Course added successfully',
         timer: 1500,
         timerProgressBar: true,
         showConfirmButton: false,
@@ -320,10 +320,16 @@ const Course: React.FC = () => {
           }
 
           await api.delete(`/course/${id}`);
-
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Chapter delete successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           fetchData();
         } catch (err) {
-          handleClearForm();
           Swal.fire({
             icon: 'error',
             title: 'Error',

@@ -3,6 +3,7 @@ import api from '../api/api';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AssessmentDto, Question } from '../dto/AssessmentDto';
 import { CourseDto } from '../dto/CourseDto';
+import Swal from 'sweetalert2';
 
 const Assessment: React.FC = () => {
   const navigate = useNavigate();
@@ -101,8 +102,25 @@ const Assessment: React.FC = () => {
       await api.put(`/assessment/${assessId}`, {
         questions: JSON.stringify([...questions, newQuestion]),
       });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Question added successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add question',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error while updating questions: ', err);
     }
 
@@ -112,17 +130,45 @@ const Assessment: React.FC = () => {
   };
 
   const handleDeleteQuestion = async (index: number) => {
-    try {
-      const updatedQuestions = questions.filter((_, i) => i !== index);
-      await api.put(`/assessment/${assessId}`, {
-        questions: JSON.stringify(updatedQuestions),
-      });
-      setQuestions(updatedQuestions);
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting question:', error);
-      setError('Gagal menghapus pertanyaan. Silakan coba lagi.');
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const updatedQuestions = questions.filter((_, i) => i !== index);
+          await api.put(`/assessment/${assessId}`, {
+            questions: JSON.stringify(updatedQuestions),
+          });
+          setQuestions(updatedQuestions);
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Question deleted successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          fetchData();
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete question',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          console.error('Error deleting question:', error);
+          setError('Gagal menghapus pertanyaan. Silakan coba lagi.');
+        }
+      }
+    });
   };
 
   const handleCreateAssessment = async () => {
@@ -135,8 +181,24 @@ const Assessment: React.FC = () => {
         instruction: instruction,
         questions: JSON.stringify(questions),
       });
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Assessment added successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (createError) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add assessment',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error creating assessment:', createError);
       setError('Gagal membuat assessment. Silakan coba lagi.');
     } finally {
@@ -157,11 +219,27 @@ const Assessment: React.FC = () => {
   const handleEditInstruction = async () => {
     try {
       await api.put(`/assessment/${assessId}`, {
-        instruction: editInstruction,
+        instruction: editInstruction.trim() !== '' ? editInstruction : undefined,
+      });
+      handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Instruction updated successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
       });
       fetchData();
-      handleClearForm();
     } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update instruction',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Failed to edit instruction', error);
     }
   };
@@ -199,7 +277,12 @@ const Assessment: React.FC = () => {
             <div className="p-4 border">
               <div className="flex justify-between">
                 <strong className="grid content-center">User Response</strong>
-                <button onClick={() => navigate(`/course/${courseId}/assessment/${id}/response`)} className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md">
+                <button
+                  onClick={() =>
+                    navigate(`/course/${courseId}/assessment/${id}/response`)
+                  }
+                  className="px-4 py-2 bg-success hover:bg-opacity-90 text-white rounded-md"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 192 512"
@@ -361,7 +444,12 @@ const Assessment: React.FC = () => {
                     </div>
                     <div className="">
                       {currentOptions.map((option, index) => (
-                        <div className={index === currentOptions.length - 1 ? 'mb-4' : ''} key={index}>
+                        <div
+                          className={
+                            index === currentOptions.length - 1 ? 'mb-4' : ''
+                          }
+                          key={index}
+                        >
                           • {option}
                         </div>
                       ))}
@@ -399,12 +487,12 @@ const Assessment: React.FC = () => {
             <label className="block font-semibold mb-2 mt-4">Instruksi</label>
             <input
               type="text"
-              className="w-full border rounded p-2"
+              className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
             />
             <button
-              className="bg-blue-500 mt-4 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              className="bg-primary mt-4 hover:bg-opacity-90 text-white font-bold py-2 px-4 rounded"
               onClick={handleCreateAssessment}
             >
               Create Assessment

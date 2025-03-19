@@ -6,6 +6,7 @@ import api from '../api/api';
 import { CourseDto } from '../dto/CourseDto';
 import { AddChapterDto, ChapterDto, UpdateChapterDto } from '../dto/ChapterDto';
 import DT from 'datatables.net-dt';
+import Swal from 'sweetalert2';
 
 DataTable.use(DT);
 
@@ -29,6 +30,14 @@ const CourseDetail: React.FC = () => {
     description: '',
     courseId: Number(id),
   });
+  const [name, setName] = useState<string>();
+  const [desc, setDesc] = useState<string>();
+
+  const style = `
+    .swal2-container {
+      z-index: 10000;
+    }
+  `;
 
   const fetchStudent = async () => {
     try {
@@ -64,99 +73,139 @@ const CourseDetail: React.FC = () => {
     fetchData();
   }, [id]);
 
-  const handleOpenAddModal = () => {
-    setIsAddModalOpen(true);
-    setAddFormData({
-      name: '',
-      description: '',
-      courseId: Number(id),
-    });
-  };
-
-  const handleOpenEditModal = (chapter: ChapterDto) => {
-    setSelectedChapter(chapter);
-
-    const updateChapterData: UpdateChapterDto = {
-      name: chapter.name,
-      description: chapter.description,
-    };
-
-    setEditFormData(updateChapterData);
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setAddFormData({} as AddChapterDto);
-  };
-
-  const handleCloseEditModal = () => {
+  const handleClearForm = () => {
+    setName(undefined);
+    setDesc(undefined);
     setIsEditModalOpen(false);
-    setSelectedChapter(null);
-    setEditFormData({} as ChapterDto);
+    setIsAddModalOpen(false);
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    isEdit: boolean = false,
-  ) => {
-    const { name, value } = e.target;
-    if (isEdit) {
-      setEditFormData({ ...editFormData, [name]: value });
-    } else {
-      setAddFormData({ ...addFormData, [name]: value });
+  const isFormValid = () => {
+    if (!name || !desc) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Warning',
+        text: 'Please fill in all required fields (Name, Description).',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      return false;
     }
+    return true;
   };
 
-  const handleAddFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAddChapter = async () => {
+    if (!isFormValid()) {
+      return;
+    }
 
+    const payload: AddChapterDto = {
+      name: name!,
+      description: desc!,
+      courseId: Number(id),
+    };
     try {
-      const response = await api.post<AddChapterDto>('/chapter', addFormData);
-      console.log('Response:', response.data);
+      await api.post('/chapter', payload);
 
-      setAddFormData({ name: '', description: '', courseId: Number(id) });
-      handleCloseAddModal();
-
+      handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Chapter added successfully.',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (error) {
+      handleClearForm();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add chapter',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error adding chapter:', error);
     }
   };
 
-  const handleEditFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEditModal = (data: ChapterDto) => {
+    setName(data.name);
+    setDesc(data.description);
+    setIsEditModalOpen(true);
+  };
 
-    if (!selectedChapter) {
-      console.error('Tidak ada course yang dipilih untuk diedit.');
-      return;
-    }
+  const handleEditChapter = async (id: number) => {
+    const payload: UpdateChapterDto = {
+      name: name !== '' ? name : undefined,
+      description: desc !== '' ? desc : undefined,
+    };
 
     try {
-      const updatedData = { ...editFormData };
-      const response = await api.put<UpdateChapterDto>(
-        `/chapter/${selectedChapter.id}`,
-        updatedData,
-      );
-      console.log('Response:', response.data);
+      await api.put(`/chapter/${id}`, payload);
 
-      setEditFormData({} as UpdateChapterDto);
-      handleCloseEditModal();
+      handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Chapter added successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (error) {
-      console.error('Error updating chapter:', error);
+      handleClearForm();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add chapter',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+      console.error('Error while updating chapter', error);
     }
   };
 
   const handleDelete = async (id: number) => {
-    try {
-      const response = await api.delete(`/chapter/${id}`);
-      console.log('Response:', response.data);
-
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting chapter:', error);
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await api.delete(`/chapter/${id}`);
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Chapter delete successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          fetchData();
+        } catch (error) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete chapter',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          console.error('Error deleting chapter:', error);
+        }
+      }
+    });
   };
 
   const columns = [
@@ -240,7 +289,7 @@ const CourseDetail: React.FC = () => {
           'bg-warning',
           `<path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/>`,
           'Edit',
-          () => handleOpenEditModal(rowData),
+          () => handleEditModal(rowData),
         );
 
         const deleteButton = createButton(
@@ -261,7 +310,6 @@ const CourseDetail: React.FC = () => {
     },
   ];
 
-  // Fungsi untuk memotong teks
   const truncateText = (text: string, wordLimit: number): string => {
     if (!text) return '';
     const words = text.split(' ');
@@ -273,6 +321,7 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div>
+      <style>{style}</style>
       <div className="pb-6 text-xl font-semibold">
         <Link to="/course" className="text-blue-500 hover:text-blue-400">
           Course{' '}
@@ -284,19 +333,19 @@ const CourseDetail: React.FC = () => {
         <hr />
         <div className="flex flex-col sm:flex-row mt-10 sm:gap-5">
           <div className="w-full sm:w-1/3">
-          {dataCourse?.image && dataCourse.image !== '' ? (
-            <img
-              className="w-full h-75 object-cover rounded-lg border"
-              src={dataCourse.image}
-              alt="gambar"
-            />
-          ) : (
-            <img
-              className="w-full h-auto object-cover rounded-lg border"
-              src={PlaceholderImg}
-              alt="gambar"
-            />
-          )}
+            {dataCourse?.image && dataCourse.image !== '' ? (
+              <img
+                className="w-full h-75 object-cover rounded-lg border"
+                src={dataCourse.image}
+                alt="gambar"
+              />
+            ) : (
+              <img
+                className="w-full h-auto object-cover rounded-lg border"
+                src={PlaceholderImg}
+                alt="gambar"
+              />
+            )}
           </div>
           <div className="w-full mt-4 sm:w-2/3 sm:mt-0">
             <div className="mb-2 text-lg font-semibold">
@@ -329,7 +378,7 @@ const CourseDetail: React.FC = () => {
         <div className="mt-10 flex justify-between">
           <h1 className="text-2xl font-bold">Course Chapters</h1>
           <button
-            onClick={handleOpenAddModal}
+            onClick={() => setIsAddModalOpen(true)}
             className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
           >
             Add Chapter
@@ -353,7 +402,7 @@ const CourseDetail: React.FC = () => {
           />
         </div>
 
-        {isAddModalOpen && ( // Add Modal Conditional Rendering
+        {isAddModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
             <div
               className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
@@ -365,18 +414,62 @@ const CourseDetail: React.FC = () => {
                 </h3>
               </div>
               <div className="flex flex-col gap-5.5 p-6.5">
-                <AddChapterModal
-                  onClose={handleCloseAddModal}
-                  data={addFormData}
-                  onChange={handleInputChange}
-                  onSubmit={handleAddFormSubmit}
-                />
+                <div className="mb-4">
+                  <label
+                    htmlFor="name"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Input Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="code"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="description"
+                    name="description"
+                    placeholder="Input Description"
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="bg-gray-400 hover:bg-opacity-90 font-medium text-gray-800 py-2 px-4 rounded mr-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddChapter}
+                    className="bg-primary hover:bg-opacity-90 font-medium text-white py-2 px-4 rounded"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {isEditModalOpen && ( // Add Modal Conditional Rendering
+        {isEditModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
             <div
               className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
@@ -384,151 +477,66 @@ const CourseDetail: React.FC = () => {
             >
               <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
                 <h3 className="font-medium text-black dark:text-white">
-                  Add Course
+                  Add Chapter
                 </h3>
               </div>
               <div className="flex flex-col gap-5.5 p-6.5">
-                <EditChapterModal
-                  onClose={handleCloseEditModal}
-                  data={editFormData}
-                  onChange={(e) => handleInputChange(e, true)}
-                  onSubmit={handleEditFormSubmit}
-                />
+                <div className="mb-4">
+                  <label
+                    htmlFor="name"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Input Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="code"
+                    className="mb-3 block text-black dark:text-white"
+                  >
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    id="description"
+                    name="description"
+                    placeholder="Input Description"
+                    value={desc}
+                    onChange={(e) => setDesc(e.target.value)}
+                    className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  />
+                </div>
+
+                <div className="flex justify-end mt-6">
+                  <button
+                    type="button"
+                    onClick={handleClearForm}
+                    className="bg-gray-400 hover:bg-opacity-90 font-medium text-gray-800 py-2 px-4 rounded mr-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddChapter}
+                    className="bg-primary hover:bg-opacity-90 font-medium text-white py-2 px-4 rounded"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
     </div>
-  );
-};
-
-interface ModalProps<T extends AddChapterDto | UpdateChapterDto> {
-  onClose: () => void;
-  data: T;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent) => void;
-}
-
-const AddChapterModal: React.FC<ModalProps<AddChapterDto>> = ({
-  onClose,
-  data,
-  onChange,
-  onSubmit,
-}) => {
-  return (
-    <form onSubmit={onSubmit}>
-      <div className="mb-4">
-        <label htmlFor="name" className="mb-3 block text-black dark:text-white">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={data.name}
-          onChange={onChange}
-          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="code" className="mb-3 block text-black dark:text-white">
-          Description
-        </label>
-        <input
-          type="text"
-          id="description"
-          name="description"
-          value={data.description}
-          onChange={onChange}
-          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        />
-      </div>
-
-      <div className="mb-4" style={{ display: 'none' }}>
-        <label htmlFor="code" className="mb-3 block text-black dark:text-white">
-          Course ID
-        </label>
-        <input
-          type="text"
-          id="course-id"
-          name="courseId"
-          value={data.courseId}
-          onChange={onChange}
-          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        />
-      </div>
-
-      <div className="flex justify-end mt-6">
-        <button
-          type="button"
-          onClick={onClose}
-          className="bg-gray-400 hover:bg-opacity-90 font-medium text-gray-800 py-2 px-4 rounded mr-2"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="bg-primary hover:bg-opacity-90 font-medium text-white py-2 px-4 rounded"
-        >
-          Save
-        </button>
-      </div>
-    </form>
-  );
-};
-
-const EditChapterModal: React.FC<ModalProps<UpdateChapterDto>> = ({
-  onClose,
-  data,
-  onChange,
-  onSubmit,
-}) => {
-  return (
-    <form onSubmit={onSubmit}>
-      <div className="mb-4">
-        <label htmlFor="name" className="mb-3 block text-black dark:text-white">
-          Name
-        </label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={data.name}
-          onChange={onChange}
-          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        />
-      </div>
-      <div className="mb-4">
-        <label htmlFor="code" className="mb-3 block text-black dark:text-white">
-          Description
-        </label>
-        <input
-          type="text"
-          id="description"
-          name="description"
-          value={data.description}
-          onChange={onChange}
-          className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-        />
-      </div>
-
-      <div className="flex justify-end mt-6">
-        <button
-          type="button"
-          onClick={onClose}
-          className="bg-gray-400 hover:bg-opacity-90 text-gray-800 font-medium py-2 px-4 rounded mr-2"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className="bg-primary hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded"
-        >
-          Save
-        </button>
-      </div>
-    </form>
   );
 };
 

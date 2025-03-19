@@ -4,6 +4,7 @@ import api from '../api/api';
 import PlaceholderImg from '../images/placeholder-image.png';
 import { supabase } from '../api/supabase';
 import { AddTradeDto, TradeDto, UpdateTradeDto } from '../dto/TradeDto';
+import Swal from 'sweetalert2';
 
 const Trade: React.FC = () => {
   const [data, setData] = useState<TradeDto[]>([]);
@@ -25,6 +26,9 @@ const Trade: React.FC = () => {
     background-position: right 8px center;
     background-size: 30px;
     padding-right: 28px;
+  }
+  .swal2-container {
+    z-index: 10000;
   }
   `;
 
@@ -83,7 +87,26 @@ const Trade: React.FC = () => {
     }
   };
 
+  const isFormValid = () => {
+      if (!title || !description || !badgeType) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Warning',
+          text: 'Please fill in all required fields (Title, Description, Type)',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        return false;
+      }
+      return true;
+    };
+
   const handleAddTrade = async () => {
+    if (!isFormValid()) {
+      return;
+    }
+
     if (!imageFile) {
       alert('Please select an image.');
       return;
@@ -93,6 +116,15 @@ const Trade: React.FC = () => {
     const filePath = `trade/${fileName}`;
 
     try {
+      const payload: AddTradeDto = {
+        title: title,
+        description: description,
+        requiredBadgeType: badgeType,
+        image: '',
+      };
+
+      const response = await api.post('/trade', payload);
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('assignment')
         .upload(filePath, imageFile);
@@ -103,25 +135,45 @@ const Trade: React.FC = () => {
         } else {
           console.error('Unknown error uploading image:', uploadError);
         }
-        alert('Failed to upload image.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to upload image',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
+        await api.delete(`/trade/${response.data.trade.id}`);
         return;
       }
 
       const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
-      const tradePayload: AddTradeDto = {
-        title: title,
-        description: description,
-        requiredBadgeType: badgeType,
+      const imagePayload: UpdateTradeDto = {
         image: imageUrl,
       };
 
-      const response = await api.post<AddTradeDto>('/trade', tradePayload);
-      console.log(response.data);
+      await api.put(`/trade/${response.data.trade.id}`, imagePayload);
 
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Trade added successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to add trade',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error while adding badge: ', err);
     }
   };
@@ -145,6 +197,15 @@ const Trade: React.FC = () => {
             }
           }
         } catch (deleteErr) {
+          handleClearForm();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete old image',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           console.error('Error deleting old image:', deleteErr);
           alert('Failed to delete old image.');
           return;
@@ -160,25 +221,36 @@ const Trade: React.FC = () => {
           .upload(filePath, imageFile);
 
         if (uploadError) {
+          handleClearForm();
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to upload new image',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
           console.error('Error uploading new image:', uploadError);
-          alert('Failed to upload new image.');
           return;
         }
 
         imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
       } catch (uploadErr) {
+        handleClearForm();
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to upload new image',
+          timer: 1500,
+          timerProgressBar: true,
+          showConfirmButton: false,
+        });
         console.error('Error uploading new image:', uploadErr);
-        alert('Failed to upload new image.');
         return;
       }
     }
 
     const uploadData: UpdateTradeDto = {
-      // name: name !== '' ? name : undefined,
-      // type: type,
-      // courseId: courseId,
-      // chapterId: chapterId,
-      // image: imageUrl || undefined,
       title: title !== '' ? title : undefined,
       description: description !== '' ? description : undefined,
       requiredBadgeType: badgeType !== '' ? badgeType : undefined,
@@ -186,46 +258,93 @@ const Trade: React.FC = () => {
     };
 
     try {
-      const response = await api.put<UpdateTradeDto>(
-        `/trade/${tradeId}`,
-        uploadData,
-      );
-      console.log(response.data);
+      await api.put<UpdateTradeDto>(`/trade/${tradeId}`, uploadData);
 
       handleClearForm();
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Trade updated successfully',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       fetchData();
     } catch (err) {
+      handleClearForm();
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update trade',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       console.error('Error while updating badge: ', err);
     }
   };
 
   const handleDeleteTrade = async (id: number, imageUrl?: string) => {
-    try {
-      if (imageUrl) {
-        const oldFilePath = imageUrl.split('/assignment/')[1];
-        if (oldFilePath) {
-          const { error: deleteStorageError } = await supabase.storage
-            .from('assignment')
-            .remove([oldFilePath]);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          if (imageUrl) {
+            const oldFilePath = imageUrl.split('/assignment/')[1];
+            if (oldFilePath) {
+              const { error: deleteStorageError } = await supabase.storage
+                .from('assignment')
+                .remove([oldFilePath]);
 
-          if (deleteStorageError) {
-            console.error(
-              'Error deleting image from storage:',
-              deleteStorageError,
-            );
-            alert('Failed to delete image from storage.');
-            return;
+              if (deleteStorageError) {
+                console.error(
+                  'Error deleting image from storage:',
+                  deleteStorageError,
+                );
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'Failed to delete image',
+                  timer: 1500,
+                  timerProgressBar: true,
+                  showConfirmButton: false,
+                });
+                return;
+              }
+            }
           }
+
+          await api.delete(`/trade/${id}`);
+          
+          Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: 'Trade delete successfully',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          fetchData();
+        } catch (err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to delete trade',
+            timer: 1500,
+            timerProgressBar: true,
+            showConfirmButton: false,
+          });
+          console.error('Error while deleting badge: ', err);
         }
       }
-
-      const response = await api.delete(`/trade/${id}`);
-      console.log(response.data);
-
-      fetchData();
-    } catch (err) {
-      console.error('Error while deleting badge: ', err);
-    }
+    });
   };
 
   const columns = [
