@@ -1,5 +1,5 @@
 import DataTable from 'datatables.net-react';
-import { Link, resolvePath, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../api/api';
 import { CourseDto } from '../dto/CourseDto';
 import { useEffect, useState } from 'react';
@@ -24,7 +24,6 @@ const AssessmentResponse: React.FC = () => {
   const fetchAssess = async() => {
     try {
       const response = await api.get<AssessmentDto>(`/assessment/${assessId}`);
-      // setDataAssess(response.data);
       fetchAssessResponse(response.data.chapterId)
     } catch (error) {
       console.error('Error while fetching assessment data', error);

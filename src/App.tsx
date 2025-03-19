@@ -30,6 +30,7 @@ import Login from './pages/Login';
 import Trade from './pages/Trade';
 import AssessmentResponse from './pages/AssessmentResponse';
 import DetailResponse from './pages/DetailResponse';
+import AssignmentResponse from './pages/AssignmentResponse';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -273,6 +274,15 @@ function App() {
                     <>
                       <PageTitle title="Assessment Detail" />
                       <DetailResponse />
+                    </>
+                  }
+                />
+                <Route
+                  path="/course/:courseId/assignment/:assignId/response"
+                  element={
+                    <>
+                      <PageTitle title="Assignment Response" />
+                      <AssignmentResponse />
                     </>
                   }
                 />
