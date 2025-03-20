@@ -21,7 +21,7 @@ const DetailResponse = () => {
     } catch (error) {
       console.error('Error while fetching user', error);
     }
-  }
+  };
 
   const fetchUserResponse = async (id: number) => {
     try {
@@ -100,9 +100,11 @@ const DetailResponse = () => {
           Assessment Response Management
         </h1>
         <hr />
-        <div className='mt-4 grid grid-cols-2 gap-1'>
-          <div className='p-2 bg-slate-100 text-center'>{dataUser.name}</div>
-          <div className='p-2 bg-slate-100 text-center'>{dataUser.studentId}</div>
+        <div className="mt-4 grid grid-cols-2 gap-1">
+          <div className="p-2 bg-slate-100 text-center">{dataUser.name}</div>
+          <div className="p-2 bg-slate-100 text-center">
+            {dataUser.studentId}
+          </div>
         </div>
         <div className="mt-4 flex flex-col gap-4">
           {/* title */}
@@ -135,11 +137,13 @@ const DetailResponse = () => {
               ) : (
                 <div></div>
               )}
-              {item.type === 'MC' && (
+              {item.type === 'MC' ? (
                 <div>
                   <div className="mt-2">Jawaban: </div>
                   <div className="mt-2 font-bold">{item.answer}</div>
                 </div>
+              ) : (
+                <div className="mt-4 font-bold">{allAnswer[index]}</div> 
               )}
             </div>
           ))}
