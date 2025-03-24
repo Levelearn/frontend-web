@@ -517,7 +517,7 @@ const Badge: React.FC = () => {
         </div>
 
         {isAddModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999 overflow-y-auto">
             <div
               className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
               style={{ width: '800px', maxWidth: '90%' }}
@@ -675,7 +675,7 @@ const Badge: React.FC = () => {
         )}
 
         {isEditModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999">
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-9999 overflow-y-auto">
             <div
               className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
               style={{ width: '800px', maxWidth: '90%' }}

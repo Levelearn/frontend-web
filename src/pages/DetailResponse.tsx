@@ -143,7 +143,11 @@ const DetailResponse = () => {
                   <div className="mt-2 font-bold">{item.answer}</div>
                 </div>
               ) : (
-                <div className="mt-4 font-bold">{allAnswer[index]}</div> 
+                <div>
+                  <div className="mt-2">{allAnswer[index]}</div>
+                  <div className="mt-2">Jawaban: </div>
+                  <div className="mt-2 font-bold">{item.answer}</div>
+                </div>
               )}
             </div>
           ))}

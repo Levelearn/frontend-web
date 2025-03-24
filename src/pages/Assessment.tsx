@@ -23,6 +23,8 @@ const Assessment: React.FC = () => {
   const [newAnswerText, setNewAnswerText] = useState<string>('');
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
 
+  const optionList = 'abcdefghijklmnopqrstuvwxyz';
+
   const selectStyle = `
   .custom-select {
     appearance: none;
@@ -95,7 +97,7 @@ const Assessment: React.FC = () => {
     const newQuestion: Question = {
       question: newQuestionText,
       options: questionType === 'MC' ? currentOptions : undefined,
-      answer: questionType === 'MC' ? newAnswerText : '',
+      answer: newAnswerText,
       type: questionType as 'MC' | 'EY',
     };
     try {
@@ -219,7 +221,8 @@ const Assessment: React.FC = () => {
   const handleEditInstruction = async () => {
     try {
       await api.put(`/assessment/${assessId}`, {
-        instruction: editInstruction.trim() !== '' ? editInstruction : undefined,
+        instruction:
+          editInstruction.trim() !== '' ? editInstruction : undefined,
       });
       handleClearForm();
       Swal.fire({
@@ -368,7 +371,7 @@ const Assessment: React.FC = () => {
                     <p>{q.question}</p>
                     <p className="mt-2">
                       <strong>TYPE</strong> <br />
-                      {q.type === 'MC' ? 'Pilihan Berganda' : 'Esai'}
+                      {q.type === 'MC' ? 'Multiple Choice' : 'Essay'}
                     </p>
                     {q.type === 'MC' &&
                       q.options &&
@@ -379,7 +382,7 @@ const Assessment: React.FC = () => {
                             <strong>OPTION</strong>
                           </p>
                           {q.options.map((option, optionIndex) => (
-                            <div key={optionIndex}>• {option}</div>
+                            <div key={optionIndex}>{optionList.charAt(optionIndex)}. {option}</div>
                           ))}
                           <p className="mt-2">
                             <strong>ANSWER</strong>
@@ -389,8 +392,8 @@ const Assessment: React.FC = () => {
                       )}
                     {q.type === 'EY' && (
                       <p className="mt-2">
-                        <strong>ANSWER (ESSAY)</strong>
-                        <br />-
+                        <strong>ANSWER</strong>
+                        <br /> {q.answer}
                       </p>
                     )}
                   </div>
@@ -430,6 +433,7 @@ const Assessment: React.FC = () => {
                       <input
                         type="text"
                         className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                        placeholder='Input Option'
                         value={newOptionText}
                         onChange={(e) => setNewOptionText(e.target.value)}
                       />
@@ -450,7 +454,7 @@ const Assessment: React.FC = () => {
                           }
                           key={index}
                         >
-                          • {option}
+                          {optionList.charAt(index)}. {option}
                         </div>
                       ))}
                     </div>
@@ -461,7 +465,7 @@ const Assessment: React.FC = () => {
                         value={newAnswerText}
                         onChange={(e) => setNewAnswerText(e.target.value)}
                       >
-                        <option value="">Pilih Jawaban</option>
+                        <option value="">Choose Answer</option>
                         {currentOptions.map((option, index) => (
                           <option key={index} value={option}>
                             {option}
@@ -471,7 +475,16 @@ const Assessment: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-4"></div>
+                  <div className="mb-4">
+                     <div className="mb-2">Answer</div>
+                    <input
+                      className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                      type="text"
+                      placeholder='Input Answer'
+                      value={newAnswerText}
+                      onChange={(e) => setNewAnswerText(e.target.value)}
+                    />
+                  </div>
                 )}
                 <button
                   className="py-2 px-4 bg-primary hover:bg-opacity-90 font-medium text-white rounded-md"
