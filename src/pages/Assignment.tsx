@@ -118,7 +118,7 @@ const Assignment: React.FC<AssignmentProps> = () => {
           return;
         }
 
-        uploadedFileUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        uploadedFileUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
         // Hapus file lama jika ada dan berbeda dengan file baru
         if (oldFileUrl && oldFileUrl !== uploadedFileUrl) {

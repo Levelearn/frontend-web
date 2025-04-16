@@ -164,7 +164,7 @@ const Badge: React.FC = () => {
         return;
       }
 
-      const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      const imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
       // Update data badge dengan URL gambar
       const updateBadgeData: UpdateBadgeDto = {
@@ -275,7 +275,7 @@ const Badge: React.FC = () => {
           return;
         }
 
-        imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
       } catch (uploadErr) {
         handleClearForm();
         Swal.fire({

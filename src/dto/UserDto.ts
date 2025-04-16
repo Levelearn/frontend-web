@@ -9,7 +9,7 @@ export interface UserDto {
   totalCourses?: number | null;
   badges?: any[] | null; 
   instructorId?: string | null;
-  instructorCourses?: any[] | null; 
+  instructorCourses?: number | null; 
   createdAt: string; 
   updatedAt: string;
 }

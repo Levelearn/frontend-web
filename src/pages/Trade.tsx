@@ -147,7 +147,7 @@ const Trade: React.FC = () => {
         return;
       }
 
-      const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      const imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
       const imagePayload: UpdateTradeDto = {
         image: imageUrl,
@@ -234,7 +234,7 @@ const Trade: React.FC = () => {
           return;
         }
 
-        imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
       } catch (uploadErr) {
         handleClearForm();
         Swal.fire({

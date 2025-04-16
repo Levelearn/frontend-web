@@ -246,7 +246,7 @@ const AssignmentResponse = () => {
           >
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Add Badge
+                Manage Score
               </h3>
             </div>
             <div className="flex flex-col gap-5.5 p-6.5">

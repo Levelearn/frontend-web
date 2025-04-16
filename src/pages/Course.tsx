@@ -7,16 +7,16 @@ import { AddCourseDto, CourseDto, UpdateCourseDto } from '../dto/CourseDto';
 import api from '../api/api';
 import Swal from 'sweetalert2';
 import { supabase } from '../api/supabase';
+import { UserDto } from '../dto/UserDto';
+import { User } from '@supabase/supabase-js';
 
 const Course: React.FC = () => {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '');
+  const [userData, setUserData] = useState<UserDto>({} as UserDto);
   const [data, setData] = useState<CourseDto[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<CourseDto | null>(null);
-  const [editFormData, setEditFormData] = useState<UpdateCourseDto>(
-    {} as UpdateCourseDto,
-  );
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [oldImageUrl, setOldImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -25,17 +25,37 @@ const Course: React.FC = () => {
   const [desc, setDesc] = useState<string>();
   const [courseId, setCourseId] = useState<number>();
 
-  const fetchData = async () => {
+
+  const fetchUser = async () => {
+    try {
+      const response = await api.get<UserDto>(`/user/${user.id}`);
+      setUserData(response.data);
+      await fetchData(response.data); 
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  };
+
+  const fetchData = async (currentUserData?: UserDto) => {
     try {
       const response = await api.get<CourseDto[]>('course');
-      setData(response.data);
+      let courseData = response.data;
+
+      if (user.role === 'INSTRUCTOR' && currentUserData?.instructorCourses) {
+        courseData = courseData.filter(
+          (course) => course.id === currentUserData.instructorCourses,
+        );
+      }
+
+      setData(courseData);
+      console.log('Fetched course data:', courseData);
     } catch (error) {
-      console.log('Error Fetching Data: ', error);
+      console.error('Error Fetching Data: ', error);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchUser();
   }, []);
 
   const handleEditModal = (data: CourseDto) => {
@@ -138,7 +158,7 @@ const Course: React.FC = () => {
         return;
       }
 
-      const imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      const imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
 
       const imagePayload: UpdateCourseDto = {
         image: imageUrl,
@@ -228,7 +248,7 @@ const Course: React.FC = () => {
           return;
         }
 
-        imageUrl = `https://inxrmazghretqayellhc.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
       } catch (uploadErr) {
         handleClearForm();
         Swal.fire({
@@ -252,10 +272,7 @@ const Course: React.FC = () => {
     };
 
     try {
-      await api.put(
-        `/course/${courseId}`,
-        uploadData,
-      );
+      await api.put(`/course/${courseId}`, uploadData);
 
       handleClearForm();
       Swal.fire({
@@ -436,7 +453,7 @@ const Course: React.FC = () => {
         <h1 className="text-2xl font-bold pb-5">Course Management</h1>
         <hr />
         <div className="text-end mt-6">
-          <button // Tombol "Add Course" yang sudah diperbaiki
+          <button
             onClick={() => setIsAddModalOpen(true)}
             className="inline-flex items-center justify-center rounded-md px-3 py-2 bg-primary text-center font-medium text-white hover:bg-opacity-90"
           >
