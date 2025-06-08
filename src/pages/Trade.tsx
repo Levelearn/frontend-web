@@ -126,7 +126,7 @@ const Trade: React.FC = () => {
       const response = await api.post('/trade', payload);
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('assignment')
+        .from('finalproject')
         .upload(filePath, imageFile);
 
       if (uploadError) {
@@ -147,7 +147,7 @@ const Trade: React.FC = () => {
         return;
       }
 
-      const imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+      const imageUrl = `https://msvsocwvhpxfnfhjewar.supabase.co/storage/v1/object/public/finalproject/${filePath}`;
 
       const imagePayload: UpdateTradeDto = {
         image: imageUrl,
@@ -184,10 +184,10 @@ const Trade: React.FC = () => {
     if (imageFile) {
       if (oldImageUrl) {
         try {
-          const oldFilePath = oldImageUrl.split('/assignment/')[1];
+          const oldFilePath = oldImageUrl.split('/finalproject/')[1];
           if (oldFilePath) {
             const { error: deleteError } = await supabase.storage
-              .from('assignment')
+              .from('finalproject')
               .remove([oldFilePath]);
 
             if (deleteError) {
@@ -217,7 +217,7 @@ const Trade: React.FC = () => {
 
       try {
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('assignment')
+          .from('finalproject')
           .upload(filePath, imageFile);
 
         if (uploadError) {
@@ -234,7 +234,7 @@ const Trade: React.FC = () => {
           return;
         }
 
-        imageUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        imageUrl = `https://msvsocwvhpxfnfhjewar.supabase.co/storage/v1/object/public/finalproject/${filePath}`;
       } catch (uploadErr) {
         handleClearForm();
         Swal.fire({
@@ -297,10 +297,10 @@ const Trade: React.FC = () => {
       if (result.isConfirmed) {
         try {
           if (imageUrl) {
-            const oldFilePath = imageUrl.split('/assignment/')[1];
+            const oldFilePath = imageUrl.split('/finalproject/')[1];
             if (oldFilePath) {
               const { error: deleteStorageError } = await supabase.storage
-                .from('assignment')
+                .from('finalproject')
                 .remove([oldFilePath]);
 
               if (deleteStorageError) {

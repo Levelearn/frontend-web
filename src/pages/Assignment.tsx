@@ -82,7 +82,7 @@ const Assignment: React.FC<AssignmentProps> = () => {
     const filePath = `assignment/${id}/${fileName}`;
 
     const { error } = await supabase.storage
-      .from('assignment')
+      .from('finalproject')
       .remove([filePath]);
     if (error) {
       console.error('Error deleting file:', error);
@@ -107,7 +107,7 @@ const Assignment: React.FC<AssignmentProps> = () => {
       if (file) {
         const filePath = `assignment/${id}/${encodeURIComponent(file.name)}`;
         const { data, error }: { data: any; error: any } =
-          await supabase.storage.from('assignment').upload(filePath, file, {
+          await supabase.storage.from('finalproject').upload(filePath, file, {
             upsert: true,
           });
 
@@ -118,7 +118,7 @@ const Assignment: React.FC<AssignmentProps> = () => {
           return;
         }
 
-        uploadedFileUrl = `https://vymbuulgynmxbsfkuvvy.supabase.co/storage/v1/object/public/assignment/${filePath}`;
+        uploadedFileUrl = `https://msvsocwvhpxfnfhjewar.supabase.co/storage/v1/object/public/finalproject/${filePath}`;
 
         // Hapus file lama jika ada dan berbeda dengan file baru
         if (oldFileUrl && oldFileUrl !== uploadedFileUrl) {
