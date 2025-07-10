@@ -1,4 +1,4 @@
-# 🎓 Digital Learning Admin Panel (Gamified LMS)
+# 🎓 Levelearn Admin Panel (ReactJs)
 
 This is the **admin panel** for a gamified digital learning platform. It allows administrators to manage users, courses, content, assessments, and engagement features through an intuitive React-based dashboard.
 
